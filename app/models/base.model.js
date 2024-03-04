@@ -10,7 +10,7 @@ const { Model, DataTypes } = require('sequelize');
 //   );
   
 //   module.exports = sequelize;
-const sequelize = require('./db');
+const sequelize = require('../config/db.config');
 
 class BaseModel extends Model {
 

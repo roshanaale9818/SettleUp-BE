@@ -1,9 +1,9 @@
 const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
-const Role = db.role;
+// const Role = db.role;
 
-const Op = db.Sequelize.Op;
+// const Op = db.Sequelize.Op;
 
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
@@ -26,17 +26,17 @@ exports.signup = (req, res) => {
     res.send({ status: "error", message: isRequiredMessage('Password') });
   }
 
-  else if (!isAdmin) {
-    res.send({ status: "error", message: isRequiredMessage('Key') });
-  }
+  // else if (!isAdmin) {
+  //   res.send({ status: "error", message: isRequiredMessage('Key') });
+  // }
 
   else {
 
-    if (isAdmin !== '9818009826') {
-      res.send({ status: "error", message: "Invalid key. Could not register user." });
-    }
+    // if (isAdmin !== '9818009826') {
+    //   res.send({ status: "error", message: "Invalid key. Could not register user." });
+    // }
 
-    else {
+    // else {
       // Save User to Database
       User.create({
         username: username,
@@ -64,7 +64,7 @@ exports.signup = (req, res) => {
         .catch(err => {
           res.status(500).send({ status: "error", message: err.message });
         });
-    }
+    // }
 
   }
 };

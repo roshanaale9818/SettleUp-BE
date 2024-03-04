@@ -37,7 +37,7 @@ routes(app);
 
 // force true should be removed for production environment
 // {force:true}
-db.sequelize.sync().then(()=>{
+db.sequelize.sync({force:true}).then(()=>{
     // console.log("Drop and Resync Db");
     initial(); // creates 3 rows in database
 })

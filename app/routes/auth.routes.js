@@ -1,11 +1,10 @@
 const { verifySignUp, authJwt } = require("../middleware");
 const controller = require("../controllers/auth.controller");
 const  apiVersionPrefix = require("../config/verison");
-const usersController = require("../controllers/users.controller")
+// const usersController = require("../controllers/users.controller")
 
 
 module.exports = function(app) {
-  console.log("AAIPUGo");
   app.use(function(req, res, next) {
     res.header(
       "Access-Control-Allow-Headers",
