@@ -1,9 +1,9 @@
 const db = require("../models");
-const config = require("../config/auth.config");
-const User = db.user;
+// const config = require("../config/auth.config");
+// const User = db.user;
 const Contact = db.contact;
-var jwt = require("jsonwebtoken");
-var bcrypt = require("bcryptjs");
+// var jwt = require("jsonwebtoken");
+// var bcrypt = require("bcryptjs");
 const isRequiredMessage = require("../util/validateRequest");
 
 exports.createContactMessage = (req, res) => {

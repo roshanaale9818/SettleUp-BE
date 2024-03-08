@@ -1,4 +1,5 @@
 const express = require("express");
+require('dotenv/config') 
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const CORS = require('./app/util/corsOptions');
@@ -8,21 +9,21 @@ exports.dir = directory;
 
 //create the app for rest api using express
 const app = express();
-var corsOptions = [...CORS] 
+let corsOptions = [...CORS] 
 
 // use the cors body parser in express app 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());// parsing requesting content type to application/json 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static('public'));
-// making upload folder static for accessing 
 app.use('/uploads', express.static('uploads'));
-app.get("/",(req,res)=>{
+app.get("/",(req,res,next)=>{
     res.json({status:"ok",message:"Welcome to Node js app."});
+    next();
 
 });
 
-
+console.log("PROCEESS", process.env.PORT)
 const PORT = process.env.PORT || 8080;//setting up the ports for application
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`)

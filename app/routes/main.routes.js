@@ -1,11 +1,5 @@
 const authRoutes = require('./auth.routes');
-const userRoutes = require('./user.routes');
 const contactRoutes = require('./contact.routes');
-const personalInfoRoutes = require('./personalinfo.routes');
-const socialmediaRoutes = require('./socialmedia.routes');
-const skillRoutes =require('./skill.routes');
-const projectRoutes=require('./project.routes');
-const homeRoutes=require('./home.routes');
 // const { uploadResume } = require('../models');
 const uploadResume = require('./upload.resume.routes');
 const imageUpload = require('./image-upload.routes');

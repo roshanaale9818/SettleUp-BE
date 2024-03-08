@@ -28,5 +28,6 @@ module.exports = function(app) {
     [authJwt.verifyToken, authJwt.isAdmin],
     controller.getUsers
   );
+  app.post(apiVersionPrefix+"auth/login", controller.login);
   
 };

@@ -1,8 +1,9 @@
+console.log(process.env.PASSWORD)
 module.exports = {
-    HOST:"localhost",
-    USER:"postgres",
-    PASSWORD:"Poision@123",
-    DB:"expenseshare",
+    HOST:process.env.HOST,
+    USER:process.env.USER,
+    PASSWORD:process.env.PASSWORD,
+    DB:process.env.DB,
     dialect:"postgres",
     pool:{
         port:25060,

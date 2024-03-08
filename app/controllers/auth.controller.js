@@ -1,16 +1,13 @@
 const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
-// const Role = db.role;
-
-// const Op = db.Sequelize.Op;
-
-var jwt = require("jsonwebtoken");
-var bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const isRequiredMessage = require("../util/validateRequest");
+const TOKEN = require('../util/token');
+const createError = require('http-errors');
 
 exports.signup = (req, res) => {
-  // console.log("OKAY")
   let { username, email, password, isAdmin } = req.body;
 
   console.log("HERE", username);
@@ -44,22 +41,9 @@ exports.signup = (req, res) => {
         password: bcrypt.hashSync(req.body.password, 8),
       })
         .then(user => {
-          // checking for creating role in isAdmin property
-          // if (req.body.isAdmin === "9818009826") {
-          //3 is admin as we have coded in server.js
           user.setRoles([3]).then(() => {
             res.send({ status: "ok", message: "User was registered successfully!" });
           });
-          // }
-          // else {
-          //   // res.send({ status: "error", message: "Invalid key. Could not register user." });
-
-          //   // user role = 1 for users
-          //   // user.setRoles([1]).then((data) => {
-          //   //   res.send({ status: "ok", message: "User was registered successfully!" });
-          //   // });
-          // }
-          // }
         })
         .catch(err => {
           res.status(500).send({ status: "error", message: err.message });
@@ -94,7 +78,7 @@ exports.signin = (req, res) => {
           return res.send({ status: "error", message: "User Not found." });
         }
 
-        var passwordIsValid = bcrypt.compareSync(
+        let passwordIsValid = bcrypt.compareSync(
           req.body.password,
           user.password
         );
@@ -108,11 +92,11 @@ exports.signin = (req, res) => {
           });
         }
 
-        var token = jwt.sign({ id: user.id }, config.secretKey, {
+        let token = jwt.sign({ id: user.id }, config.secretKey, {
           expiresIn: 86400 // 24 hours
         });
 
-        var authorities = [];
+        let authorities = [];
         let isAdmin = false;
         user.getRoles().then(roles => {
           for (let i = 0; i < roles.length; i++) {
@@ -176,4 +160,9 @@ exports.getUsers = (req, res) => {
 
 
 
+}
+exports.login = (req,res,next)=>{
+  if(!req.user){
+    next(createError(401,'Please login'))
+  }
 }
