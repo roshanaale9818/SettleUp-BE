@@ -13,14 +13,14 @@ module.exports = function(app) {
     next();
   });
 
-  app.post(
-    apiVersionPrefix+"auth/signup",
-    [verifySignUp.verifyRequestHasEmailAndUsername,
-      verifySignUp.checkDuplicateUsernameOrEmail,
-      verifySignUp.checkRolesExisted
-    ],
-    controller.signup
-  );
+  // app.post(
+  //   apiVersionPrefix+"auth/signup",
+  //   [verifySignUp.verifyRequestHasEmailAndUsername,
+  //     verifySignUp.checkDuplicateUsernameOrEmail,
+  //     verifySignUp.checkRolesExisted
+  //   ],
+  //   controller.signup
+  // );
 
   app.post(apiVersionPrefix+"auth/signin", controller.signin);
   app.get(
@@ -29,5 +29,8 @@ module.exports = function(app) {
     controller.getUsers
   );
   app.post(apiVersionPrefix+"auth/login", controller.login);
+  app.post(apiVersionPrefix+"auth/register",  [verifySignUp.checkDuplicateEmail,
+  verifySignUp.checkRolesExisted
+],controller.RegisterUser)
   
 };

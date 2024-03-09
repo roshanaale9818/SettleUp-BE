@@ -14,13 +14,13 @@ exports.signup = (req, res) => {
 
 
   if (!username) {
-    res.send({ status: "error", message: isRequiredMessage('Username') });
+    res.status(400).send({ status: "error", message: isRequiredMessage('Username') });
   }
   else if (!email) {
-    res.send({ status: "error", message: isRequiredMessage('Email') });
+    res.status(400).send({ status: "error", message: isRequiredMessage('Email') });
   }
   else if (!password) {
-    res.send({ status: "error", message: isRequiredMessage('Password') });
+    res.status(400).send({ status: "error", message: isRequiredMessage('Password') });
   }
 
   // else if (!isAdmin) {
@@ -42,7 +42,7 @@ exports.signup = (req, res) => {
       })
         .then(user => {
           user.setRoles([3]).then(() => {
-            res.send({ status: "ok", message: "User was registered successfully!" });
+            res.status(200).send({ status: "ok", message: "User was registered successfully!" });
           });
         })
         .catch(err => {
@@ -164,5 +164,39 @@ exports.getUsers = (req, res) => {
 exports.login = (req,res,next)=>{
   if(!req.user){
     next(createError(401,'Please login'))
+  }
+}
+//registering the user
+exports.RegisterUser = async (req,res,next)=>{
+  try{
+    const {email,firstName,middleName,lastName,password,address,contact}= req.body;
+    const data = {
+      password:password?bcrypt.hashSync(password, 8):null,
+      email:email,
+      firstName:firstName,
+      middleName:middleName,
+      lastName:lastName,
+      address:address,
+      contact:contact,
+      status:"1",
+      remarks:'',
+    }
+    const user = await User.create(data);
+    await user.setRoles([1]);
+    console.log("result",user);
+    res.status(201).json({
+      status:'success',
+      message:"User created successfull."
+    })
+  }
+  catch(error){
+    if(error.name ==='SequelizeValidationError' || error.name===
+    'SequelizeUniqueConstraintError'){
+      const errors = error.errors.map(err=> err.message);
+      res.status(400).json({status:"error",errors});
+    }
+   else{
+    res.status(400).json({status:"error",message:"Error occured in register"})
+   }
   }
 }

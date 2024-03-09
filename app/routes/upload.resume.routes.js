@@ -27,17 +27,4 @@ module.exports = function(app) {
   app.get(apiVersionPrefix+"resume/getall",
   // [authJwt.verifyToken, authJwt.isAdmin],
   controller.getAllResume);
-
-
-
-//   app.get(
-//     apiVersionPrefix+ "skill/getskills",
-//     [authJwt.verifyToken, authJwt.isAdmin],
-//     controller.getSkills
-//   );
-//   app.delete(
-//     apiVersionPrefix+ "skill/delete",
-//     [authJwt.verifyToken, authJwt.isAdmin],
-//     controller.deleteSkill
-//   );
 };
