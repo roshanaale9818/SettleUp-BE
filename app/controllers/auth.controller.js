@@ -1,202 +1,153 @@
 const db = require("../models");
-const config = require("../config/auth.config");
 const User = db.user;
-const jwt = require("jsonwebtoken");
+const Token = db.token;
 const bcrypt = require("bcryptjs");
 const isRequiredMessage = require("../util/validateRequest");
-const TOKEN = require('../util/token');
+const TokenGenerator = require('../util/token');
 const createError = require('http-errors');
 
-exports.signup = (req, res) => {
-  let { username, email, password, isAdmin } = req.body;
+// user login 
+exports.login = async (req, res) => {
+  try {
+    let { email, password } = req.body;
+    if (!email) {
+      res.status(400).send({ status: "error", message: isRequiredMessage('Email') });
+    }
+    if (!password) {
+      res.status(400).send({ status: "error", message: isRequiredMessage('Password') });
+    }
 
-  console.log("HERE", username);
-
-
-  if (!username) {
-    res.status(400).send({ status: "error", message: isRequiredMessage('Username') });
-  }
-  else if (!email) {
-    res.status(400).send({ status: "error", message: isRequiredMessage('Email') });
-  }
-  else if (!password) {
-    res.status(400).send({ status: "error", message: isRequiredMessage('Password') });
-  }
-
-  // else if (!isAdmin) {
-  //   res.send({ status: "error", message: isRequiredMessage('Key') });
-  // }
-
-  else {
-
-    // if (isAdmin !== '9818009826') {
-    //   res.send({ status: "error", message: "Invalid key. Could not register user." });
-    // }
-
-    // else {
-      // Save User to Database
-      User.create({
-        username: username,
-        email: email,
-        password: bcrypt.hashSync(req.body.password, 8),
+    else {
+      User.findOne({
+        where: {
+          email: email || null,
+        }
       })
-        .then(user => {
-          user.setRoles([3]).then(() => {
-            res.status(200).send({ status: "ok", message: "User was registered successfully!" });
+        .then(async (user) => {
+          if (!user) {
+            return res.status(400).send({ status: "error", message: "Email or password is invalid." });
+          }
+
+          let passwordIsValid = bcrypt.compareSync(
+            password,
+            user.password
+          );
+
+          if (!passwordIsValid) {
+            return res.status(400).send({
+              status: "error",
+              message: "Invalid email or password."
+            });
+          }
+          let authorities = [];
+          // let isAdmin = false;
+          await user.getRoles().then(roles => {
+            for (let i = 0; i < roles.length; i++) {
+              authorities.push("ROLE_" + roles[i].name.toUpperCase());
+            }
+          });
+          let token = ''
+          await TokenGenerator.signAccessToken(user.id, user.email, authorities[0]).then((_token) => {
+            token = _token.access_token;
+            try {
+              Token.create({
+                token: token,
+                createdBy: user.id
+              })
+            } catch (err) {
+              res.status(500).send({ status: "error", message: "Internal Server at generating token" })
+            }
+          }).catch((err) => {
+            res.status(400).send({ status: 'error', message: "Internal server", data: err })
+          });
+          const data = {
+            id: user.id,
+            email: user.email,
+            roles: authorities,
+            accessToken: token,
+            street: user.street,
+            city: user.city,
+            isVerified: user.isVerified,
+            country: user.country,
+            contact: user.contact,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            middleName: user.middleName,
+            state: user.state
+          };
+          res.status(200).send({
+            status: "ok",
+            data: data
           });
         })
         .catch(err => {
           res.status(500).send({ status: "error", message: err.message });
         });
-    // }
-
-  }
-};
-
-exports.signin = (req, res) => {
-
-  let { username, password } = req.body;
-  if (!username) {
-    res.send({ status: "error", message: isRequiredMessage('Username') });
-  }
-  if (!password) {
-    res.send({ status: "error", message: isRequiredMessage('Password') });
-  }
-
-  else {
-
-    // else  
-    User.findOne({
-      where: {
-        username: username
-      }
-    })
-      .then(user => {
-        // console.log("USER",user)
-        if (!user) {
-          // status(404)
-          return res.send({ status: "error", message: "User Not found." });
-        }
-
-        let passwordIsValid = bcrypt.compareSync(
-          req.body.password,
-          user.password
-        );
-
-        if (!passwordIsValid) {
-          // status(401)
-          return res.send({
-            status: "error",
-            accessToken: null,
-            message: "Invalid Credential!"
-          });
-        }
-
-        let token = jwt.sign({ id: user.id }, config.secretKey, {
-          expiresIn: 86400 // 24 hours
-        });
-
-        let authorities = [];
-        let isAdmin = false;
-        user.getRoles().then(roles => {
-          for (let i = 0; i < roles.length; i++) {
-            authorities.push("ROLE_" + roles[i].name.toUpperCase());
-            if (roles[i].name.toUpperCase() === 'ADMIN') {
-              isAdmin = true;
-            }
-          }
-          if (isAdmin) {
-            res.status(200).send({
-              status: "ok",
-              data: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                roles: authorities,
-                accessToken: token,
-              }
-
-            });
-          }
-          else {
-            res.status(400).send({
-              status: "error",
-              data: {
-              },
-              message: "Unauthorized"
-
-            });
-          }
-
-        });
-      })
-      .catch(err => {
-        res.status(500).send({ status: "error", message: err.message });
-      });
-  }
-};
-
-exports.getUsers = (req, res) => {
-  let { username, password } = req.body;
-
-  User.findAll({
-    attributes: ['id', 'username', 'email', 'createdAt']
-
-  })
-    .then(users => {
-      // console.log("USER",user)
-      if (!users) {
-        // status(404)
-        return res.send({ status: "error", message: "No any users", data: users });
-      }
-      else {
-        return res.send({ status: "ok", data: users });
-      }
-
     }
-
-    )
-
-
-
-
-}
-exports.login = (req,res,next)=>{
-  if(!req.user){
-    next(createError(401,'Please login'))
+  } catch (error) {
+    res.status(500).send({ status: "error", message: "Something went wrong." });
   }
 }
 //registering the user
-exports.RegisterUser = async (req,res,next)=>{
-  try{
-    const {email,firstName,middleName,lastName,password,address,contact}= req.body;
+exports.registerUser = async (req, res) => {
+  try {
+    const { email, firstName, middleName, lastName, password, contact, street, postalCode, country, state } = req.body;
     const data = {
-      password:password?bcrypt.hashSync(password, 8):null,
-      email:email,
-      firstName:firstName,
-      middleName:middleName,
-      lastName:lastName,
-      address:address,
-      contact:contact,
-      status:"1",
-      remarks:'',
+      password: password ? bcrypt.hashSync(password, 8) : null,
+      email: email,
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
+      contact: contact,
+      status: "1",
+      remarks: '',
+      street,
+      postalCode,
+      country,
+      state,
+      isVerified: 0,
     }
-    const user = await User.create(data);
-    await user.setRoles([1]);
-    console.log("result",user);
-    res.status(201).json({
-      status:'success',
-      message:"User created successfull."
+    User.create(data).then((user) => {
+      // 1 is for user roles 
+      user.setRoles([1]).then((data) => {
+        res.status(201).json({
+          status: 'ok',
+          message: "User created successfull.",
+        })
+      });
+    }).catch((error) => {
+      if (error.name === 'SequelizeValidationError' || error.name ===
+        'SequelizeUniqueConstraintError') {
+        const errors = error.errors.map(err => err.message);
+        res.status(400).json({ status: "error", errors });
+      }
+      else {
+        res.status(400).json({ status: "error", message: "Error occured in register" })
+      }
+    });
+  }
+  catch (error) {
+    res.status(400).json({ status: "error", message: "Error occured in register" })
+  }
+}
+exports.logout = async (req, res) => {
+  try {
+    let token = req.headers["x-access-token"]
+    await Token.destroy({
+      where: {
+        token: token
+      }
+    }).then((data) => {
+      console.log("DATA deleted", data);
+      res.status(200).send({ status: 'ok', mesage: 'Logged out successfull.' })
+      return;
+    }).catch((err) => {
+      res.status(400).send({ status: 'error', message: err })
+
     })
   }
-  catch(error){
-    if(error.name ==='SequelizeValidationError' || error.name===
-    'SequelizeUniqueConstraintError'){
-      const errors = error.errors.map(err=> err.message);
-      res.status(400).json({status:"error",errors});
-    }
-   else{
-    res.status(400).json({status:"error",message:"Error occured in register"})
-   }
+  catch (err) {
+    console.log("CAUGHT ERROR", err)
+    res.status(400).send({ status: 'error', message: err })
   }
 }

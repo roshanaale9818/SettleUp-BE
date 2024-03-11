@@ -9,7 +9,7 @@ const signAccessToken = (userId, userEmail, role) => {
       role: role
     };
 
-    const secret = process.env.ACCESS_TOKEN_SECRET;
+    const secret = process.env.SECRETKEY;
     const options = {
       expiresIn: '1d',
     };
@@ -19,7 +19,7 @@ const signAccessToken = (userId, userEmail, role) => {
         console.log(err.message);
         return reject(createError.InternalServerError());
       }
-      resolve({ access_token: token, payload: payload });
+      resolve({ access_token: token});
     });
   })
 }
@@ -30,7 +30,7 @@ const verifyAccessToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const bearerToken = authHeader.split(' ');
   const token = bearerToken[1]
-  JWT.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, payload) => {
+  JWT.verify(token, process.env.SECRETKEY, (err, payload) => {
     if (err) {
       console.log(err);
       return next(createError.Unauthorized());

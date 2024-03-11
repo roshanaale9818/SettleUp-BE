@@ -1,6 +1,7 @@
 const config = require('../config/db.config');
 const UserModel = require('../models/user.model');
 const RoleModel = require('../models/role.model');
+const TokenModel = require('./token.model');
 // const ContactModel = require('../models/contact.model');
 // const ImageUploadModel = require('./image-upload.model');
 const Sequelize = require('sequelize');
@@ -25,11 +26,9 @@ const sequelize = new Sequelize(
 const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
-db.user =UserModel(sequelize,Sequelize);
+db.user = UserModel(sequelize,Sequelize);
 db.role = RoleModel(sequelize, Sequelize);
-// db.contact = ContactModel(sequelize,Sequelize);
-// db.imageupload = ImageUploadModel(sequelize,Sequelize);
-
+db.token = TokenModel(sequelize);
 // through, foreignKey, otherKey, is for a new table user_roles as 
 // connection between users and roles table via their primary key as foreign keys.
 db.role.belongsToMany(db.user, {
@@ -44,5 +43,5 @@ db.user.belongsToMany(db.role, {
 });
  
 
-db.ROLES = ["user", "admin", "moderator"];
+db.ROLES = ["user", "admin", "moderator","superadmin"];
 module.exports = db;
