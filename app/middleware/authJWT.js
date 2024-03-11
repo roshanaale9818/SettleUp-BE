@@ -5,8 +5,8 @@ const User = db.user;
 const Token = db.token;
 
 verifyToken = async (req, res, next) => {
+  try{
   let token = req.headers["x-access-token"];
-
   if (!token) {
     return res.status(403).send({
       status: "error",
@@ -14,11 +14,11 @@ verifyToken = async (req, res, next) => {
     });
   }
 
-  await Token.findOne({
+  const _token =   await Token.findOne({
     where: {
       token: token
     }
-  }).then((_token => {
+  });
     if (!_token) {
       res.status(400).send({ status: 'error', message: "Token Invalid or Expired." })
       return;
@@ -38,7 +38,11 @@ verifyToken = async (req, res, next) => {
         next();
       });
     }
-  }))
+  }
+  catch(err){
+    console.log('error occured',err);
+    res.status(400).send({status:'error', message:"Error occured in verifying."})
+  }
 
 
 };

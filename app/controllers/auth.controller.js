@@ -130,21 +130,20 @@ exports.registerUser = async (req, res) => {
     res.status(400).json({ status: "error", message: "Error occured in register" })
   }
 }
-exports.logout = async (req, res) => {
+exports.logout =  (req, res) => {
   try {
     let token = req.headers["x-access-token"]
-    await Token.destroy({
+     const data = Token.destroy({
       where: {
         token: token
       }
-    }).then((data) => {
-      console.log("DATA deleted", data);
-      res.status(200).send({ status: 'ok', mesage: 'Logged out successfull.' })
-      return;
-    }).catch((err) => {
-      res.status(400).send({ status: 'error', message: err })
-
     })
+    if(data){
+      res.status(200).send({ status: 'ok', mesage: 'Logged out successfull.' })
+    }
+    else{
+      res.status(400).send({ status: 'error', message: err })
+    }
   }
   catch (err) {
     console.log("CAUGHT ERROR", err)
