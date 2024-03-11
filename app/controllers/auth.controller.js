@@ -13,7 +13,7 @@ exports.login = async (req, res) => {
     if (!email) {
       res.status(400).send({ status: "error", message: isRequiredMessage('Email') });
     }
-    if (!password) {
+    else if (!password) {
       res.status(400).send({ status: "error", message: isRequiredMessage('Password') });
     }
 
