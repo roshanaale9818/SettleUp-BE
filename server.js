@@ -35,12 +35,15 @@ routes(app);
 
 
 // force true should be removed for production environment
-// {force:true}
-db.sequelize.sync({force:true}).then(()=>{
+let dev = process.env.MODE || "TEST";
+db.sequelize.sync().then(()=>{
     // console.log("Drop and Resync Db");
     initial(); // creates 3 rows in database
 })
-const initial = ()=> {
+const initial = async ()=> {
+  try{
+   const rolesList = await Role.findAll();
+   if(!rolesList){
     Role.create({
       id: 1,
       name: "user"
@@ -55,13 +58,11 @@ const initial = ()=> {
       id: 3,
       name: "admin"
     });
+   }
+  }
+  catch(err){
+    console.log("Error has occured in initial creation.")
   }
 
+}
 
-
-
-//   const swaggerUi = require('swagger-ui-express');
-// const swaggerDocument = require('./swagger.json');
-// const customCss = fs.readFileSync((process.cwd()+"/swagger.css"), 'utf8');
-// let express to use this
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {}));
