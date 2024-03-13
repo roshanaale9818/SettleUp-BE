@@ -2,8 +2,6 @@ const config = require('../config/db.config');
 const UserModel = require('../models/user.model');
 const RoleModel = require('../models/role.model');
 const TokenModel = require('./token.model');
-// const ContactModel = require('../models/contact.model');
-// const ImageUploadModel = require('./image-upload.model');
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
   config.DB,
