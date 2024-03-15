@@ -4,7 +4,6 @@ const Token = db.token;
 const bcrypt = require("bcryptjs");
 const isRequiredMessage = require("../util/validateRequest");
 const TokenGenerator = require('../util/token');
-const createError = require('http-errors');
 const delay = require('./../util/helper');
 
 // user login 

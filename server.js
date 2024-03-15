@@ -3,6 +3,7 @@ require('dotenv/config')
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const CORS = require('./app/util/corsOptions');
+const routes = require('./app/routes/main.routes');
 const directory = __dirname;
 exports.dir = directory;
 
@@ -18,7 +19,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 app.get("/",(req,res,next)=>{
-    res.json({status:"ok",message:"Welcome to Node js app."});
+    res.json({status:"ok",message:"Node js is running."});
     next();
 
 });
@@ -29,7 +30,6 @@ app.listen(PORT,()=>{
 });
 const db = require('./app/models/index');
 const Role = db.role;
-const routes = require('./app/routes/main.routes');
 routes(app);
 
 

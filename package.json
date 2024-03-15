@@ -1,5 +1,5 @@
 {
-  "name": "y",
+  "name": "expensesharebackend",
   "version": "1.0.0",
   "description": "portfolio backend with postgres and node",
   "main": "index.js",
