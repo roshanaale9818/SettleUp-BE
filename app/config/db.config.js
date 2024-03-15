@@ -1,4 +1,4 @@
-console.log(process.env.PASSWORD)
+
 module.exports = {
     HOST:process.env.HOST,
     USER:process.env.USER,
