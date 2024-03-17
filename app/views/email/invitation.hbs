@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitation to Join Our {{groupName}} @expenseshare</title>
+    <style>
+        /* Add your custom CSS styles here to make the email more attractive */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 200px;
+        }
+        .invitation-text {
+            margin-bottom: 20px;
+        }
+        .invitation-link {
+            text-align: center;
+        }
+        .invitation-link a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://example.com/company-logo.png" alt="Company Logo">
+        </div>
+        <div class="invitation-text">
+            <p>Hello {{inviteTo}},</p>
+            <p>You have been invited by {{invitedBy}} to join  {{groupName}} at expenseshare.</p>
+            <p>Click the link below to accept the invitation:</p>
+        </div>
+        <div class="invitation-link">
+            <a href="{{invitationLink}}">Join Group</a>
+        </div>
+    </div>
+</body>
+</html>

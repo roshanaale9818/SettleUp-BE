@@ -6,10 +6,10 @@ module.exports =  (sequelize) => {
         allowNull: false,
         validate:{
           notEmpty:{
-            msg:"Name is required."
+            msg:"Group Name is required."
           },
           notNull:{
-            msg:'Name cannot be null'
+            msg:'Group name cannot be null'
           }
         }
       },

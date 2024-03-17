@@ -1,7 +1,7 @@
 const {authJwt } = require("../middleware");
 const apiVersionPrefix = require("../config/verison");
 const groupcontroller = require('./../controllers/group.controller');
-
+// require('../util/')
 module.exports = function (app) {
     app.use(function (req, res, next) {
         res.header(
@@ -10,7 +10,7 @@ module.exports = function (app) {
         );
         next();
     });
-    app.post(`${apiVersionPrefix}group/create`, [authJwt.verifyToken], groupcontroller.createGroup)
-
-
+    app.post(`${apiVersionPrefix}group/create`, [authJwt.verifyToken], groupcontroller.createGroup);
+    app.get(`${apiVersionPrefix}group/getgrouplist`, [authJwt.verifyToken], groupcontroller.getGroupList);
+    app.post(`${apiVersionPrefix}group/inviteuser`, [authJwt.verifyToken], groupcontroller.inviteToGroup);
 };

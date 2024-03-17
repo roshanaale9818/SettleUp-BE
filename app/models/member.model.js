@@ -1,7 +1,19 @@
 const Sequelize = require('sequelize');
 module.exports = (sequelize) => {
-    const GroupMember = sequelize.define("GroupMember", {
-        memberName:{
+    const Member = sequelize.define("Member", {
+        userId: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: {
+                    msg: "Member userId is required."
+                },
+                notNull: {
+                    msg: 'Members userId cannot be null'
+                }
+            }
+        },
+        memberName: {
             type: Sequelize.STRING(1000),
             allowNull: true,
         },
@@ -11,9 +23,9 @@ module.exports = (sequelize) => {
         },
         status: {
             type: Sequelize.STRING,
-            allowNull: false,
+            allowNull: true,
         },
-    }, { tableName: 'groupmember' });
+    }, { tableName: 'members' });
 
-    return GroupMember;
+    return Member;
 };
