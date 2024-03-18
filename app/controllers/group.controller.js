@@ -118,10 +118,10 @@ exports.inviteToGroup = async (req,res)=>{
     try{
       const {userEmail, groupId}= req.body;
       if(!userEmail){
-        res.status(400).send(getResponseBody('error','User email is required.',[]))
+        return res.status(400).send(getResponseBody('error','User email is required.',[]))
       }
       else if (!groupId){
-        res.status(400).send(getResponseBody('error','Group Id is required.',[]))
+       return res.status(400).send(getResponseBody('error','Group Id is required.',[]))
     
       }
       const group = await Group.findOne({
