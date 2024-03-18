@@ -2,8 +2,10 @@ const config = require('../config/db.config');
 const UserModel = require('../models/user.model');
 const RoleModel = require('../models/role.model');
 const TokenModel = require('./token.model');
-// const ContactModel = require('../models/contact.model');
-// const ImageUploadModel = require('./image-upload.model');
+const GroupModel = require('./group.model');
+const InvitationModel = require('./invitation.model');
+// const GroupMemberModel = require('./groupmember.model');
+const MemberModel = require('./member.model');
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
   config.DB,
@@ -29,6 +31,11 @@ db.sequelize = sequelize;
 db.user = UserModel(sequelize,Sequelize);
 db.role = RoleModel(sequelize, Sequelize);
 db.token = TokenModel(sequelize);
+// db.groupMember = GroupMemberModel(sequelize);
+db.group = GroupModel(sequelize);
+db.member = MemberModel(sequelize);
+db.invitation = InvitationModel(sequelize);
+
 // through, foreignKey, otherKey, is for a new table user_roles as 
 // connection between users and roles table via their primary key as foreign keys.
 db.role.belongsToMany(db.user, {
@@ -41,6 +48,13 @@ db.user.belongsToMany(db.role, {
   foreignKey: "userId",
   otherKey: "roleId"
 });
+//association a group has many members
+db.group.belongsToMany(db.member,{
+  through:"group_members",
+})
+ db.member.belongsToMany(db.group,{
+  through:"group_members",
+})
  
 
 db.ROLES = ["user", "admin", "moderator","superadmin"];

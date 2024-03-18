@@ -4,11 +4,12 @@ const Token = db.token;
 const bcrypt = require("bcryptjs");
 const isRequiredMessage = require("../util/validateRequest");
 const TokenGenerator = require('../util/token');
-const createError = require('http-errors');
+const delay = require('./../util/helper');
 
 // user login 
 exports.login = async (req, res) => {
   try {
+    await delay(2000);// awaiting delaying the request to process.
     let { email, password } = req.body;
     if (!email) {
       res.status(400).send({ status: "error", message: isRequiredMessage('Email') });
@@ -47,15 +48,21 @@ exports.login = async (req, res) => {
             }
           });
           let token = ''
-          await TokenGenerator.signAccessToken(user.id, user.email, authorities[0]).then((_token) => {
+          await TokenGenerator.signAccessToken(user.id, user.email, authorities[0]).then(async(_token) => {
             token = _token.access_token;
             try {
+              //delete every other token so that they cannot be used for the same user. 
+            //  await Token.destroy({
+            //     where:{
+            //       createdBy:user.id
+            //     }
+            //   });
               Token.create({
                 token: token,
                 createdBy: user.id
               })
             } catch (err) {
-              res.status(500).send({ status: "error", message: "Internal Server at generating token" })
+              res.status(500).send({ status: "error", message: "Internal Server at generating token",errors:err })
             }
           }).catch((err) => {
             res.status(400).send({ status: 'error', message: "Internal server", data: err })
