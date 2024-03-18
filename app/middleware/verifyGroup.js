@@ -5,7 +5,9 @@ const { getResponseBody } = require("../util/util");
 const Group = db.group;
 const Member = db.member;
 
-// validate the unique emails 
+
+
+// validate the current token user is in that group  
 verifyGroupHasUser = async (req, res, next) => {
   try {
     const { groupId } = req.body;

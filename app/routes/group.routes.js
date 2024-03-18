@@ -1,6 +1,7 @@
 const {authJwt,groupUserIsAdmin } = require("../middleware");
 const apiVersionPrefix = require("../config/verison");
 const groupcontroller = require('./../controllers/group.controller');
+const { userIsInGroup } = require("../middleware/verifyGroup");
 // require('../util/')
 module.exports = function (app) {
     app.use(function (req, res, next) {
@@ -12,6 +13,8 @@ module.exports = function (app) {
     });
     app.post(`${apiVersionPrefix}group/create`, [authJwt.verifyToken], groupcontroller.createGroup);
     app.post(`${apiVersionPrefix}group/update`, [authJwt.verifyToken,groupUserIsAdmin], groupcontroller.updateGroup);
-    app.get(`${apiVersionPrefix}group/getgrouplist`, [authJwt.verifyToken,verifyGroupHasUser], groupcontroller.getGroupList);
+    app.get(`${apiVersionPrefix}group/getgrouplist`, [authJwt.verifyToken], groupcontroller.getGroupList);
     app.post(`${apiVersionPrefix}group/inviteuser`, [authJwt.verifyToken], groupcontroller.inviteToGroup);
+    app.post(`${apiVersionPrefix}group/addgroupmember`, [authJwt.verifyToken,userIsInGroup], groupcontroller.addGroupMember);
+    
 };
