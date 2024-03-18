@@ -59,7 +59,7 @@ exports.createGroup = async (req, res) => {
       include:[Member]
     })
     // console.log("THIS IS RESULT",result);
-    res.status(200).send(getResponseBody('success','Group created successfull',result))
+    res.status(200).send(getResponseBody('ok','Group created successfull',result))
 
   }
   catch (error) {
@@ -153,7 +153,7 @@ exports.inviteToGroup = async (req,res)=>{
         if (error) {
           return res.status(500).send(getResponseBody('error',error.message));
         }
-        res.status(200).send(getResponseBody('sucess','Invitation sent successfully!'));
+        res.status(200).send(getResponseBody('ok','Invitation sent successfully!'));
       });
     }
     catch(err){
@@ -161,4 +161,46 @@ exports.inviteToGroup = async (req,res)=>{
       return res.status(500).send(getResponseBody('error',err.message));
 
     }
+}
+
+exports.updateGroup = async (req,res)=>{
+  await delay(3000); // delaying for some seconds
+  try {
+    const {groupId,groupName}= req.body;
+    if(!groupId){
+      return res.status(400).send(getResponseBody('error','Group Id cannot be null', []))
+    }
+
+
+    //finding the creator from database
+    const result = await Group.update({
+      groupName,
+    
+    },  {
+      where:{
+        id:groupId,
+        createdBy:req.userId
+      }
+     
+    })
+    // console.log("THIS IS RESULT",result);
+   if(!result){
+    return res.status(400).send(getResponseBody('error','Group updated failed',result))
+   }
+   return res.status(200).send(getResponseBody('ok','Group updated successfull'))
+
+
+  }
+  catch (error) {
+    // console.log("errr",err.message)
+    if (error.name === 'SequelizeValidationError' || error.name ===
+      'SequelizeUniqueConstraintError') {
+      const errors = error.errors.map(err => err.message);
+      res.status(400).json({ status: "error", errors });
+    }
+    else {
+      res.status(500).send(getResponseBody('error', error.message, []));
+    }
+  }
+
 }
