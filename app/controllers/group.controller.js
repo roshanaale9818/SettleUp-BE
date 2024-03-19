@@ -293,3 +293,75 @@ exports.addGroupMember = async (req, res) => {
 
   }
 }
+
+exports.removeGroupMember = async (req, res) => {
+  try {
+    const { userEmail, groupId } = req.body;
+    if (!userEmail) {
+      return res.status(400).send(getResponseBody('error', 'User email is required.', []))
+    }
+    else if (!groupId) {
+      return res.status(400).send(getResponseBody('error', 'Group Id is required.', []))
+
+    }
+    const group = await Group.findOne({
+      where: {
+        id: groupId || null
+      }
+    });
+    if (!group || group.length == 0) {
+      return res.status(400).send(getResponseBody('error', 'Group doesnot exist.'))
+    }
+    // inviting user 
+    const user = await User.findOne({
+      where: {
+        email: userEmail
+      }
+    });
+
+    if (!user) {
+      return res.status(400).send(getResponseBody('error', 'User doesnot exist.'))
+    }
+
+
+
+    const isMember = await Group.findOne({
+      include: [{
+        model: Member,
+        where: { userId: String(user.id) }
+      }],
+      where: { id: groupId }
+    });
+
+    // check if user is already on group 
+
+    if (!isMember) {
+      return res.status(400).send(getResponseBody('error', 'User is already not on group.'))
+    }
+
+    // else add member 
+
+
+    const memberResult = await Member.create(
+      {
+        userId: user.id,
+        memberName: user.firstName,
+        isAdmin: 0,
+        status: '1'
+      }
+    )
+    const result = await group.addMember(memberResult);
+    if (!result) {
+      return res.status(200).send(getResponseBody('error', 'User addition failed.', result))
+
+    }
+
+    return res.status(200).send(getResponseBody('ok', 'User added successfull.', result))
+
+  }
+  catch (err) {
+    console.log(err)
+    return res.status(500).send(getResponseBody('error', err.message));
+
+  }
+}
