@@ -248,7 +248,7 @@ exports.addGroupMember = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).send(getResponseBody('error', 'User doesnot exist.'))
+      return res.status(400).send(getResponseBody('error', 'User No Found. Please invite user first.'))
     }
 
     console.log("this is user", user);
