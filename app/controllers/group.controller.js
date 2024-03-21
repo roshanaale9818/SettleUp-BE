@@ -105,7 +105,8 @@ exports.getGroupList = async (req, res) => {
     );
 
     res.status(200).json({
-      totalItems: count,
+      status:'ok',
+      totalItems: count ?count:0,
       data: rows,
       totalPages: Math.ceil(count / limit),
       currentPage: page
