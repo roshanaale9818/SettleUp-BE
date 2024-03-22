@@ -68,7 +68,7 @@ verifyGroupUserIsAdmin = async (req, res, next) => {
       }],
 
       where: {
-        id: groupId
+        id: String(groupId) || null
       }
 
     });

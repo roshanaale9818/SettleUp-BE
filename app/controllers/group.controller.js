@@ -94,19 +94,22 @@ exports.getGroupList = async (req, res) => {
           attributes: {
             exclude: ['group_members']
           }
-
         }],
+        where: {
+          status: "1"
+  
+        },
         limit,
         offset: (page - 1) * limit,
         attributes: {
           exclude: ['createdBy']
-        }
-      }
+        },
+      },
     );
 
     res.status(200).json({
-      status:'ok',
-      totalItems: count ?count:0,
+      status: 'ok',
+      totalItems: count ? count : 0,
       data: rows,
       totalPages: Math.ceil(count / limit),
       currentPage: page
@@ -144,10 +147,10 @@ exports.inviteToGroup = async (req, res) => {
       userEmail,
       invitedBy: req.userId,
       groupId: groupId,
-      joinStatus:'0'
+      joinStatus: '0'
     })
-    if(!inviteResult){
-      return res.status(400).send(getResponseBody('error','Invitation failed'));
+    if (!inviteResult) {
+      return res.status(400).send(getResponseBody('error', 'Invitation failed'));
     }
 
 
@@ -365,4 +368,47 @@ exports.removeGroupMember = async (req, res) => {
     return res.status(500).send(getResponseBody('error', err.message));
 
   }
+}
+
+
+
+exports.deleteGroup = async (req, res) => {
+  await delay(3000); // delaying for some seconds
+  try {
+    const { groupId } = req.body;
+    if (!groupId) {
+      return res.status(400).send(getResponseBody('error', 'Group Id cannot be null', []))
+    }
+
+
+    //finding the creator from database
+    const result = await Group.update({
+      status: "0"
+    }, {
+      where: {
+        id: groupId,
+        createdBy: req.userId
+      }
+
+    })
+    // console.log("THIS IS RESULT",result);
+    if (!result) {
+      return res.status(400).send(getResponseBody('error', 'Group delete failed', result))
+    }
+    return res.status(200).send(getResponseBody('ok', 'Group deleted successfull'))
+
+
+  }
+  catch (error) {
+    // console.log("errr",err.message)
+    if (error.name === 'SequelizeValidationError' || error.name ===
+      'SequelizeUniqueConstraintError') {
+      const errors = error.errors.map(err => err.message);
+      res.status(400).json({ status: "error", errors });
+    }
+    else {
+      res.status(500).send(getResponseBody('error', error.message, []));
+    }
+  }
+
 }
