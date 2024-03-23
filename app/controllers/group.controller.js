@@ -97,22 +97,35 @@ exports.getGroupList = async (req, res) => {
         }],
         where: {
           status: "1"
-  
+
         },
         limit,
         offset: (page - 1) * limit,
+        raw: true,
         attributes: {
-          exclude: ['createdBy']
+          exclude: ['']
         },
       },
     );
 
+    const dataRows = rows.map((group) => ({
+      id: group.id,
+      imgUrl: group.imgUrl,
+      groupName : group.groupName,
+      status:group.status,
+      remarks:group.remarks,  
+      createdAt:group.createdAt,
+      updatedAt:group.updatedAt,    
+      isAdmin: group['Members.isAdmin'], // Access isAdmin directly from the flattened structure
+    }));
+
+
     res.status(200).json({
       status: 'ok',
       totalItems: count ? count : 0,
-      data: rows,
+      data: dataRows,
       totalPages: Math.ceil(count / limit),
-      currentPage: page
+      currentPage: page,
     });
   } catch (error) {
     res.status(500).send(getResponseBody('error', error.message, []));
