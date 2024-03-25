@@ -1,5 +1,6 @@
 const express = require("express");
-require('dotenv/config') 
+require('dotenv/config');
+const limiter = require('express-rate-limit');
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const CORS = require('./app/util/corsOptions');
@@ -8,6 +9,16 @@ const directory = __dirname;
 exports.dir = directory;
 //create the app for rest api using express
 const app = express();
+const rateLimiter = limiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+  message:'Too many requests from this IP, please try again later'
+	// store: ... , // Redis, Memcached, etc. See below.
+})
+// middleware 
+app.use(rateLimiter);
 let corsOptions = [...CORS] 
 
 // use the cors body parser in express app 
