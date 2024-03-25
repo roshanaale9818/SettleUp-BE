@@ -33,28 +33,32 @@ exports.findUsers = async (req, res) => {
           exclude: ['password']
         }
       });
-     if(!users) {
-      users = await User.findAll({
-        where: {
-          [Op.or]: [
-            {
-              firstName: {
-                [Op.like]: `%${search}%`
-              }
-            },
-            {
-              email: {
-                [Op.eq]: `%${search}%`
-              }
-            },
-            { status: "1" }
-          ],
-        },
-        attributes: {
-          exclude: ['password']
-        }
-      });}
-      res.status(200).send(util.getResponseBody('ok', 'Users found', users));
+      //  if(!users) {
+      //   users = await User.findAll({
+      //     where: {
+      //       [Op.or]: [
+      //         {
+      //           firstName: {
+      //             [Op.like]: `%${search}%`
+      //           }
+      //         },
+      //         {
+      //           email: {
+      //             [Op.eq]: `%${search}%`
+      //           }
+      //         },
+      //         { status: "1" }
+      //       ],
+      //     },
+      //     attributes: {
+      //       exclude: ['password']
+      //     }
+      //   });}
+
+      if (users) {
+        return res.status(200).send(util.getResponseBody('ok', 'User not found', users));
+      }
+      return res.status(200).send(util.getResponseBody('ok', 'User Not found', []));
     } catch (error) {
       res.status(500).send(util.getResponseBody('error', error.message));
     }
