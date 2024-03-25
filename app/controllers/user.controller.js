@@ -28,6 +28,9 @@ exports.findUsers = async (req, res) => {
           email: {
             [Op.eq]: search
           }
+        },
+        attributes: {
+          exclude: ['password']
         }
       });
      if(!users) {
