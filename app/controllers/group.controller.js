@@ -111,11 +111,11 @@ exports.getGroupList = async (req, res) => {
     const dataRows = rows.map((group) => ({
       id: group.id,
       imgUrl: group.imgUrl,
-      groupName : group.groupName,
-      status:group.status,
-      remarks:group.remarks,  
-      createdAt:group.createdAt,
-      updatedAt:group.updatedAt,    
+      groupName: group.groupName,
+      status: group.status,
+      remarks: group.remarks,
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
       isAdmin: group['Members.isAdmin'], // Access isAdmin directly from the flattened structure
     }));
 
@@ -424,4 +424,47 @@ exports.deleteGroup = async (req, res) => {
     }
   }
 
+}
+
+exports.getGroup = async (req, res) => {
+  try {
+    const { groupId } = req.query;
+    console.log("GROUPID",groupId)
+    if (!groupId) {
+      return res.status(400).send(getResponseBody('error', "Group id is required."))
+    }
+    const group = await Group.findOne({
+      include: [{
+        model: Member,
+        attributes: {
+          exclude: ['group_members']
+        }
+      }],
+      where: {
+        id: groupId || null,
+        status:"1"
+      },
+      attributes:{
+        exclude: ['group_members']
+      }
+    });
+    // console.log("CREATEDBY",group.createdBy, req.userId);
+    const user = await User.findOne({
+      where:{
+        id:Number(group.createdBy)
+      }
+    })
+    group.setDataValue('isAdmin',group.createdBy === String(req.userId) ?'1':'0');
+    group.setDataValue('creatorName',`${user.firstName} ${user.lastName}`)
+    if (!group) {
+      return res.status(400).send(getResponseBody('error', "Group not found"))
+
+    }
+    else {
+      return res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
+    }
+  }
+  catch (err) {
+    return res.status(400).send(getResponseBody('error', err.message))
+  }
 }

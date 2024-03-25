@@ -10,7 +10,11 @@ const Member = db.member;
 // validate the current token user is in that group  
 verifyGroupHasUser = async (req, res, next) => {
   try {
-    const { groupId } = req.body;
+    let { groupId } = req.query;
+    console.log(groupId);
+    // if(!groupId){
+    //   groupId=req.query;
+    // }
     const group = await Group.findAll({
       include: [{
         model: Member,
@@ -24,13 +28,13 @@ verifyGroupHasUser = async (req, res, next) => {
         }
       }],
       where: {
-        id: groupId
+        id: Number(groupId)
       }
 
     });
     // console.log("Group", group)
     if (!group || group.length == 0) {
-      return res.status(400).send(getResponseBody('error', "Unauthorized, Group user is not admin or Member doesnot exist in that group."))
+      return res.status(400).send(getResponseBody('error', "Unauthorized, Group user is not admin or user doesnot exist in that group."))
     }
     next();
 
@@ -39,7 +43,7 @@ verifyGroupHasUser = async (req, res, next) => {
 
   }
   catch (error) {
-    console.log("Something went wrong")
+    console.log("Something went wrong",error)
     return res.status(400).json({ status: "error", message: error.message })
   }
 };
