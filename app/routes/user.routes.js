@@ -36,7 +36,7 @@ module.exports = function(app) {
   // app.get("/api/v1/user/getusers",
   //   usersController.getAllUser
   // )
-  app.get("/api/v1/user/searchusers",[authJwt.verifyToken],
+  app.get("/api/v1/users",[authJwt.verifyToken],
   controller.findUsers
 )
 };
