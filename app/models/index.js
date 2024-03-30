@@ -55,6 +55,7 @@ db.group.belongsToMany(db.member,{
  db.member.belongsToMany(db.group,{
   through:"group_members",
 })
+
  
 
 db.ROLES = ["user", "admin", "moderator","superadmin"];

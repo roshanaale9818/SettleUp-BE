@@ -8,6 +8,7 @@ const Invitation = db.invitation;
 const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 const path = require('path');
+const Sequelize = db.Sequelize;
 
 // Configure Nodemailer transport
 const transporter = nodemailer.createTransport({
@@ -429,7 +430,7 @@ exports.deleteGroup = async (req, res) => {
 exports.getGroup = async (req, res) => {
   try {
     const { groupId } = req.query;
-    console.log("GROUPID",groupId)
+    console.log("GROUPID", groupId)
     if (!groupId) {
       return res.status(400).send(getResponseBody('error', "Group id is required."))
     }
@@ -438,30 +439,29 @@ exports.getGroup = async (req, res) => {
         model: Member,
         attributes: {
           exclude: ['group_members']
-        }
+        },
       }],
       where: {
         id: groupId || null,
-        status:"1"
+        status: "1"
       },
-      attributes:{
+      attributes: {
         exclude: ['group_members']
       }
     });
     // console.log("CREATEDBY",group.createdBy, req.userId);
     const user = await User.findOne({
-      where:{
-        id:Number(group.createdBy)
+      where: {
+        id: Number(group.createdBy)
       }
     })
-    group.setDataValue('isAdmin',group.createdBy === String(req.userId) ?'1':'0');
-    group.setDataValue('creatorName',`${user.firstName} ${user.lastName}`)
+    group.setDataValue('isAdmin', group.createdBy === String(req.userId) ? '1' : '0');
+    group.setDataValue('creatorName', `${user.firstName} ${user.lastName}`)
     if (!group) {
       return res.status(400).send(getResponseBody('error', "Group not found"))
-
     }
     else {
-      return res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
+      return  res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
     }
   }
   catch (err) {

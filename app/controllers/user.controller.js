@@ -56,7 +56,7 @@ exports.findUsers = async (req, res) => {
       //   });}
 
       if (users) {
-        return res.status(200).send(util.getResponseBody('ok', 'User not found', users));
+        return res.status(200).send(util.getResponseBody('ok', 'User found successfull', [users]));
       }
       return res.status(200).send(util.getResponseBody('ok', 'User Not found', []));
     } catch (error) {
