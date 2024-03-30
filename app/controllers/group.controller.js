@@ -9,6 +9,7 @@ const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 const path = require('path');
 const Sequelize = db.Sequelize;
+const GroupMember = db.groupMember;
 
 // Configure Nodemailer transport
 const transporter = nodemailer.createTransport({
@@ -314,13 +315,12 @@ exports.addGroupMember = async (req, res) => {
 
 exports.removeGroupMember = async (req, res) => {
   try {
-    const { userEmail, groupId } = req.body;
-    if (!userEmail) {
-      return res.status(400).send(getResponseBody('error', 'User email is required.', []))
+    const { userId, groupId, memberId } = req.body;
+    if (!userId) {
+      return res.status(400).send(getResponseBody('error', 'User id is required.', []))
     }
     else if (!groupId) {
       return res.status(400).send(getResponseBody('error', 'Group Id is required.', []))
-
     }
     const group = await Group.findOne({
       where: {
@@ -333,7 +333,7 @@ exports.removeGroupMember = async (req, res) => {
     // inviting user 
     const user = await User.findOne({
       where: {
-        email: userEmail
+        id: userId
       }
     });
 
@@ -342,39 +342,36 @@ exports.removeGroupMember = async (req, res) => {
     }
 
 
-
-    const isMember = await Group.findOne({
-      include: [{
-        model: Member,
-        where: { userId: String(user.id) }
-      }],
-      where: { id: groupId }
-    });
-
-    // check if user is already on group 
-
-    if (!isMember) {
-      return res.status(400).send(getResponseBody('error', 'User is already not on group.'))
-    }
-
-    // else add member 
-
-
-    const memberResult = await Member.create(
-      {
-        userId: user.id,
-        memberName: user.firstName,
-        isAdmin: 0,
-        status: '1'
+    const member = await Member.findOne({
+      where:{
+        id: memberId
       }
-    )
-    const result = await group.addMember(memberResult);
-    if (!result) {
-      return res.status(200).send(getResponseBody('error', 'User addition failed.', result))
+    });
+    // console.log("MEMBER",member);
+    // const result = await group.removeMember(member);
 
+    const _groupMember = await GroupMember.findOne({
+      where:{
+        GroupId:Number(groupId),
+        MemberId:member.id
+      }
+    });
+    console.log("GROUP MEMBER", _groupMember)
+    if(!_groupMember){
+      return res.status(400).send(getResponseBody('error', 'Group Member cannot be found'))
     }
 
-    return res.status(200).send(getResponseBody('ok', 'User added successfull.', result))
+    const result = await GroupMember.destroy({
+      where:{
+        GroupId:Number(groupId),
+        MemberId:member.id
+      }
+    })
+    if(!result){
+     return res.status(400).send(getResponseBody('error', 'User failed to remove.'))
+    }
+
+    return res.status(200).send(getResponseBody('ok', 'User removed successfull.', result))
 
   }
   catch (err) {

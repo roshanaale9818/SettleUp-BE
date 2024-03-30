@@ -6,6 +6,7 @@ const GroupModel = require('./group.model');
 const InvitationModel = require('./invitation.model');
 // const GroupMemberModel = require('./groupmember.model');
 const MemberModel = require('./member.model');
+const GroupMemberModel = require('./groupMember.model');
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
   config.DB,
@@ -35,6 +36,8 @@ db.token = TokenModel(sequelize);
 db.group = GroupModel(sequelize);
 db.member = MemberModel(sequelize);
 db.invitation = InvitationModel(sequelize);
+db.groupMember = GroupMemberModel(sequelize);
+
 
 // through, foreignKey, otherKey, is for a new table user_roles as 
 // connection between users and roles table via their primary key as foreign keys.
@@ -50,10 +53,10 @@ db.user.belongsToMany(db.role, {
 });
 //association a group has many members
 db.group.belongsToMany(db.member,{
-  through:"group_members",
+  through:db.groupMember,
 })
  db.member.belongsToMany(db.group,{
-  through:"group_members",
+  through:db.groupMember,
 })
 
  
