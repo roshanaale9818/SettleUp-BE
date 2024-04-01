@@ -7,6 +7,11 @@ const InvitationModel = require('./invitation.model');
 // const GroupMemberModel = require('./groupmember.model');
 const MemberModel = require('./member.model');
 const GroupMemberModel = require('./groupMember.model');
+const ExpenseModel = require('./expense.model');
+const ReceiptModel = require('./receipt.model');
+const GroupExpense = require('./groupexpense.model');
+const MemberExpense = require('./memberexpense.model');
+const ExpenseReceipt = require('./expensereceipt.model');
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
   config.DB,
@@ -37,6 +42,11 @@ db.group = GroupModel(sequelize);
 db.member = MemberModel(sequelize);
 db.invitation = InvitationModel(sequelize);
 db.groupMember = GroupMemberModel(sequelize);
+db.expense = ExpenseModel(sequelize);
+db.receipt = ReceiptModel(sequelize);
+db.memberExpense = MemberExpense(sequelize);
+db.groupExpense = GroupExpense(sequelize);
+db.expenseReceipt = ExpenseReceipt(sequelize);
 
 
 // through, foreignKey, otherKey, is for a new table user_roles as 
@@ -58,6 +68,12 @@ db.group.belongsToMany(db.member,{
  db.member.belongsToMany(db.group,{
   through:db.groupMember,
 })
+db.expense.belongsTo(db.group, { foreignKey: 'group_id',through:db.groupExpense }); // Each expense belongs to one group
+db.group.belongsToMany(db.expense, { foreignKey: 'group_id',through:db.groupExpense }); 
+db.member.belongsToMany(db.expense,{
+  through:db.memberExpense
+})
+db.expense.belongsToMany(db.receipt,{foreignKey:'receipt_id', through:db.expenseReceipt})
 
  
 
