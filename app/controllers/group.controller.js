@@ -8,7 +8,6 @@ const Invitation = db.invitation;
 const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 const path = require('path');
-const Sequelize = db.Sequelize;
 const GroupMember = db.groupMember;
 
 // Configure Nodemailer transport
