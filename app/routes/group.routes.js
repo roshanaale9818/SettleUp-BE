@@ -19,4 +19,8 @@ module.exports = function (app) {
     app.post(`${apiVersionPrefix}group/member/add`, [authJwt.verifyToken, userIsInGroup], groupcontroller.addGroupMember);
     app.post(`${apiVersionPrefix}group/member/remove`, [authJwt.verifyToken, groupUserIsAdmin, userIsInGroup], groupcontroller.removeGroupMember);
     app.get(`${apiVersionPrefix}group/getgroup`, [authJwt.verifyToken, userIsInGroup], groupcontroller.getGroup);
+    app.get(`${apiVersionPrefix}group/list`, [authJwt.verifyToken], groupcontroller.getAllGroups);
+    app.get(`${apiVersionPrefix}group/members`, [authJwt.verifyToken], groupcontroller.getMembers);
+
+
 };

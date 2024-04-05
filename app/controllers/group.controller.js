@@ -464,3 +464,102 @@ exports.getGroup = async (req, res) => {
     return res.status(400).send(getResponseBody('error', err.message))
   }
 }
+
+
+
+// get group list with members with the token and user 
+exports.getAllGroups = async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+  try {
+    const { count, rows } = await Group.findAndCountAll(
+      {
+        include: [{
+          model: Member,
+          where: {
+            userId: String(req.userId)
+          },
+          attributes: {
+            exclude: ['group_members']
+          }
+        }],
+        where: {
+          status: "1"
+
+        },
+        raw: true,
+        attributes: {
+          exclude: ['']
+        },
+      },
+    );
+
+    const dataRows = rows.map((group) => ({
+      id: group.id,
+      imgUrl: group.imgUrl,
+      groupName: group.groupName,
+      status: group.status,
+      remarks: group.remarks,
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
+      isAdmin: group['Members.isAdmin'], // Access isAdmin directly from the flattened structure
+    }));
+
+
+    res.status(200).json({
+      status: 'ok',
+      totalItems: count ? count : 0,
+      data: dataRows,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).send(getResponseBody('error', error.message, []));
+  }
+}
+
+
+
+// get members of the group 
+exports.getMembers = async (req, res) => {
+  try {
+    const { groupId } = req.query;
+    console.log("GROUPID", groupId)
+    if (!groupId) {
+      return res.status(400).send(getResponseBody('error', "Group id is required."))
+    }
+    const group = await Group.findOne({
+      include: [{
+        model: Member,
+        attributes: {
+          exclude: ['group_members']
+        },
+      }],
+      where: {
+        id: groupId || null,
+        status: "1"
+      },
+      attributes: {
+        exclude: ['group_members']
+      }
+    });
+    // console.log("CREATEDBY",group.createdBy, req.userId);
+    const user = await User.findOne({
+      where: {
+        id: Number(group.createdBy)
+      }
+    })
+    group.setDataValue('isAdmin', group.createdBy === String(req.userId) ? '1' : '0');
+    group.setDataValue('creatorName', `${user.firstName} ${user.lastName}`)
+    if (!group) {
+      return res.status(400).send(getResponseBody('error', "Group not found"))
+    }
+    else {
+      return  res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
+    }
+  }
+  catch (err) {
+    return res.status(400).send(getResponseBody('error', err.message))
+  }
+}
+
