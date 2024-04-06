@@ -13,7 +13,8 @@ verifyGroupHasUser = async (req, res, next) => {
     let { groupId } = req.query;
     console.log(groupId);
     if(!groupId){
-      groupId=req.query;
+      // groupId=req.query;
+      return res.status(400).send(getResponseBody('error',"groupId is required,"))
     }
     const group = await Group.findAll({
       include: [{
