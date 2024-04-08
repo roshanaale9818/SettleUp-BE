@@ -75,6 +75,8 @@ db.member.belongsToMany(db.expense,{
 })
 db.expense.belongsToMany(db.receipt,{foreignKey:'receipt_id', through:db.expenseReceipt})
 
+db.user.hasMany(db.member);
+db.member.belongsTo(db.user);
  
 
 db.ROLES = ["user", "admin", "moderator","superadmin"];

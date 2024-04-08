@@ -46,3 +46,19 @@ exports.addExpense = async (req, res) => {
     }
   }
 }
+
+
+exports.getExpenseList = async (req, res) => {
+  try {
+    const { userId } = req;
+    const user = await User.findOne({
+      where: {
+        id: Number(group.createdBy)
+      }
+    })
+  
+  }
+  catch (err) {
+    return res.status(400).send(getResponseBody('error', err.message))
+  }
+}
