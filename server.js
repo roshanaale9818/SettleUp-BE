@@ -18,7 +18,7 @@ const rateLimiter = limiter({
 	// store: ... , // Redis, Memcached, etc. See below.
 })
 // middleware 
-app.use(rateLimiter);
+// app.use(rateLimiter);
 let corsOptions = [...CORS] 
 
 // use the cors body parser in express app 

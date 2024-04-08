@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 module.exports = (sequelize) => {
     const Member = sequelize.define("Member", {
         userId: {
-            type: Sequelize.STRING,
+            type: Sequelize.INTEGER,
             allowNull: false,
             validate: {
                 notEmpty: {

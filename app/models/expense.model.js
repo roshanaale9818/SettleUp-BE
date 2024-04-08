@@ -14,7 +14,7 @@ module.exports =  (sequelize) => {
         }
       },
       amount: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.FLOAT,
         allowNull: false,
         validate:{
           notEmpty:{
@@ -101,6 +101,18 @@ module.exports =  (sequelize) => {
           }
         }
       },
+      memberId:{
+        type: Sequelize.STRING,
+        allowNull: false,
+        validate:{
+          notEmpty:{
+            msg:"CreatedBy  is required."
+          },
+          notNull:{
+            msg:'Created By cannot be null'
+          }
+        }
+      }
       
     },{
         tableName:'expense'

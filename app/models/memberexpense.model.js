@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports =  (sequelize) => {
-    const MemberExpense =  sequelize.define("MemberExpense", { 
+    const MemberExpense =  sequelize.define("memberexpense", { 
       ExpenseId: {
         type: Sequelize.STRING,
         allowNull: false,

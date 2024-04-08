@@ -14,6 +14,10 @@ module.exports = function(app) {
     next();
   });
   app.post(`${apiVersionPrefix}expense/add`, [authJwt.verifyToken, userIsInGroup], controller.addExpense);
+  app.get(`${apiVersionPrefix}expense/list`, [authJwt.verifyToken],controller.getExpenseList);
+  app.get(`${apiVersionPrefix}expense/all`, [authJwt.verifyToken],controller.getAllExpenseList);
+
+  
 
 
 };

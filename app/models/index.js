@@ -49,6 +49,9 @@ db.groupExpense = GroupExpense(sequelize);
 db.expenseReceipt = ExpenseReceipt(sequelize);
 
 
+
+
+// association between entities
 // through, foreignKey, otherKey, is for a new table user_roles as 
 // connection between users and roles table via their primary key as foreign keys.
 db.role.belongsToMany(db.user, {
@@ -65,7 +68,7 @@ db.user.belongsToMany(db.role, {
 db.group.belongsToMany(db.member,{
   through:db.groupMember,
 })
- db.member.belongsToMany(db.group,{
+db.member.belongsToMany(db.group,{
   through:db.groupMember,
 })
 db.expense.belongsTo(db.group, { foreignKey: 'group_id',through:db.groupExpense }); // Each expense belongs to one group
@@ -73,6 +76,7 @@ db.group.belongsToMany(db.expense, { foreignKey: 'group_id',through:db.groupExpe
 db.member.belongsToMany(db.expense,{
   through:db.memberExpense
 })
+// db.expense.belongsTo(db.member,{foreignKey:'MemberId'})
 db.expense.belongsToMany(db.receipt,{foreignKey:'receipt_id', through:db.expenseReceipt})
 
 db.user.hasMany(db.member);
