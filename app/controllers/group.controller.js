@@ -64,7 +64,7 @@ exports.createGroup = async (req, res) => {
       include: [Member]
     })
 
-    
+
     // console.log("THIS IS RESULT",result);
     res.status(200).send(getResponseBody('ok', 'Group created successfull', result))
 
@@ -346,7 +346,7 @@ exports.removeGroupMember = async (req, res) => {
 
 
     const member = await Member.findOne({
-      where:{
+      where: {
         id: memberId
       }
     });
@@ -354,24 +354,24 @@ exports.removeGroupMember = async (req, res) => {
     // const result = await group.removeMember(member);
 
     const _groupMember = await GroupMember.findOne({
-      where:{
-        GroupId:Number(groupId),
-        MemberId:member.id
+      where: {
+        GroupId: Number(groupId),
+        MemberId: member.id
       }
     });
     console.log("GROUP MEMBER", _groupMember)
-    if(!_groupMember){
+    if (!_groupMember) {
       return res.status(400).send(getResponseBody('error', 'Group Member cannot be found'))
     }
 
     const result = await GroupMember.destroy({
-      where:{
-        GroupId:Number(groupId),
-        MemberId:member.id
+      where: {
+        GroupId: Number(groupId),
+        MemberId: member.id
       }
     })
-    if(!result){
-     return res.status(400).send(getResponseBody('error', 'User failed to remove.'))
+    if (!result) {
+      return res.status(400).send(getResponseBody('error', 'User failed to remove.'))
     }
 
     return res.status(200).send(getResponseBody('ok', 'User removed successfull.', result))
@@ -461,7 +461,7 @@ exports.getGroup = async (req, res) => {
       return res.status(400).send(getResponseBody('error', "Group not found"))
     }
     else {
-      return  res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
+      return res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
     }
   }
   catch (err) {
@@ -559,7 +559,7 @@ exports.getMembers = async (req, res) => {
       return res.status(400).send(getResponseBody('error', "Group not found"))
     }
     else {
-      return  res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
+      return res.status(200).send(getResponseBody('ok', "Group found successfull.", group))
     }
   }
   catch (err) {
@@ -567,67 +567,46 @@ exports.getMembers = async (req, res) => {
   }
 }
 
-exports.getGroupExpenses = async (req,res)=>{
+exports.getGroupExpenses = async (req, res) => {
   const userId = req.userId;
   const { groupId } = req.query;
   try {
-    // Find all groups where the user is a member
-    // const userGroups = await Group.findAll({
-    //   include: [
-    //     {
-    //       model: Member,
-    //       where: { userId: userId }
-    //     }
-    //   ]
-    // });
-
-    // Extract group IDs from the user's groups
-    // const groupIds = userGroups.map(group => group.id);
-    // Find all expenses associated with members of the user's groups (excluding the user's own expenses)
+    if (!groupId) throw new Error("Group Id is required.")
     const expenses = await Expense.findAll({
+      where: {
+        groupId: groupId
+      },
       include: [
-      
-            // { model: User }, // Include the user who added the expense
-            { model: Group, 
-              where:{
-                  groupId:groupId
-              },
-              // attributes: ['groupName'] 
-            } // Include the group details
-          ]
+        {
+          model: Member,
+        },
+        // {
+        //   model:Member
+        // }
+      ]
     });
 
     // Handle the case where no expenses are found
     if (!expenses || expenses.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
         status: 'error',
         message: 'No expenses found for other users in your groups',
         data: []
       });
     }
 
-    // Format the response to include relevant details
-    const formattedExpenses = expenses.map(expense => ({
-      id: expense.id,
-      title: expense.title,
-      amount: expense.amount,
-      addedBy: expense.Member.User.username, // Assuming there's a username attribute in the User model
-      groupName: expense.Member.Group.groupName
-    }));
-
     // Return the list of expenses associated with other users in your groups
     return res.status(200).json({
-      status: 'success',
+      status: 'ok',
       message: 'Expenses retrieved successfully for other users in your groups',
-      data: formattedExpenses
+      data: expenses
     });
 
   } catch (error) {
     // Handle errors
-    console.error('Error retrieving expenses for other users:', error.message);
-    return res.status(500).json({
+    return res.status(400).json({
       status: 'error',
-      message: 'Failed to retrieve expenses for other users',
+      message: 'Failed to retrieve expenses',
       error: error.message
     });
   }

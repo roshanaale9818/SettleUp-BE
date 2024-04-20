@@ -19,7 +19,7 @@ exports.addExpense = async (req, res) => {
       isVerified: '0',
       verifiedBy: '0', 
       groupId: body.group,
-      memberId:body.paidBy
+      MemberId:body.paidBy
     }
     // 1. Create Expense
     const expense = await Expense.create(expenseDataObj, { transaction: t });

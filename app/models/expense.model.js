@@ -101,18 +101,18 @@ module.exports =  (sequelize) => {
           }
         }
       },
-      memberId:{
-        type: Sequelize.STRING,
-        allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"CreatedBy  is required."
-          },
-          notNull:{
-            msg:'Created By cannot be null'
-          }
-        }
-      }
+      // MemberId:{
+      //   type: Sequelize.STRING,
+      //   allowNull: false,
+      //   validate:{
+      //     notEmpty:{
+      //       msg:"CreatedBy  is required."
+      //     },
+      //     notNull:{
+      //       msg:'Created By cannot be null'
+      //     }
+      //   }
+      // }
       
     },{
         tableName:'expense'
