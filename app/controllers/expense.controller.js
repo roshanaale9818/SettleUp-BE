@@ -1,4 +1,5 @@
 const db = require('../models');
+const delay = require('../util/helper');
 const { getResponseBody } = require('../util/util');
 const Expense = db.expense;
 const sequelize = db.sequelize;
@@ -55,6 +56,7 @@ exports.addExpense = async (req, res) => {
 
 
 exports.getExpenseList = async (req, res) => {
+  delay(2000)
   const page = req.query.page ? parseInt(req.query.page) : 1;
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
   try {
@@ -136,19 +138,22 @@ exports.getAllExpenseList = async (req,res)=>{
 
     // Extract group IDs from the user's groups
     const groupIds = userGroups.map(group => group.id);
-
     // Find all expenses associated with members of the user's groups (excluding the user's own expenses)
     const expenses = await Expense.findAll({
       include: [
         {
           model: Member,
           where: {
-            groupId: groupIds,
+            // GroupId: groupIds,
             userId: { [Sequelize.Op.ne]: userId } // Exclude expenses added by the user
           },
           include: [
-            { model: User }, // Include the user who added the expense
-            { model: Group, attributes: ['groupName'] } // Include the group details
+            // { model: User }, // Include the user who added the expense
+            { model: Group, 
+              where:{
+                  id:groupIds
+              },
+              attributes: ['groupName'] } // Include the group details
           ]
         }
       ]

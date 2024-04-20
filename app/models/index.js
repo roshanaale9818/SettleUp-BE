@@ -76,7 +76,7 @@ db.group.belongsToMany(db.expense, { foreignKey: 'group_id',through:db.groupExpe
 db.member.belongsToMany(db.expense,{
   through:db.memberExpense
 })
-// db.expense.belongsTo(db.member,{foreignKey:'MemberId'})
+db.expense.belongsTo(db.member,{through:db.memberExpense})
 db.expense.belongsToMany(db.receipt,{foreignKey:'receipt_id', through:db.expenseReceipt})
 
 db.user.hasMany(db.member);

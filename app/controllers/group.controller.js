@@ -9,6 +9,7 @@ const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 const path = require('path');
 const GroupMember = db.groupMember;
+const Expense = db.expense;
 
 // Configure Nodemailer transport
 const transporter = nodemailer.createTransport({
@@ -54,14 +55,16 @@ exports.createGroup = async (req, res) => {
       ...reqBody,
       Members: [{
         userId: req.userId,
-        memberName: user.firstName,
+        memberName: `${user.firstName} ${user.lastName}`,
         isAdmin: 1,
-        status: '1'
+        status: '1',
       }]
 
     }, {
       include: [Member]
     })
+
+    
     // console.log("THIS IS RESULT",result);
     res.status(200).send(getResponseBody('ok', 'Group created successfull', result))
 
@@ -297,6 +300,7 @@ exports.addGroupMember = async (req, res) => {
       }
     )
     const result = await group.addMember(memberResult);
+    await memberResult.addGroup(group);
     if (!result) {
       return res.status(200).send(getResponseBody('error', 'User addition failed.', result))
 
@@ -562,4 +566,72 @@ exports.getMembers = async (req, res) => {
     return res.status(400).send(getResponseBody('error', err.message))
   }
 }
+
+exports.getGroupExpenses = async (req,res)=>{
+  const userId = req.userId;
+  const { groupId } = req.query;
+  try {
+    // Find all groups where the user is a member
+    // const userGroups = await Group.findAll({
+    //   include: [
+    //     {
+    //       model: Member,
+    //       where: { userId: userId }
+    //     }
+    //   ]
+    // });
+
+    // Extract group IDs from the user's groups
+    // const groupIds = userGroups.map(group => group.id);
+    // Find all expenses associated with members of the user's groups (excluding the user's own expenses)
+    const expenses = await Expense.findAll({
+      include: [
+      
+            // { model: User }, // Include the user who added the expense
+            { model: Group, 
+              where:{
+                  groupId:groupId
+              },
+              // attributes: ['groupName'] 
+            } // Include the group details
+          ]
+    });
+
+    // Handle the case where no expenses are found
+    if (!expenses || expenses.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No expenses found for other users in your groups',
+        data: []
+      });
+    }
+
+    // Format the response to include relevant details
+    const formattedExpenses = expenses.map(expense => ({
+      id: expense.id,
+      title: expense.title,
+      amount: expense.amount,
+      addedBy: expense.Member.User.username, // Assuming there's a username attribute in the User model
+      groupName: expense.Member.Group.groupName
+    }));
+
+    // Return the list of expenses associated with other users in your groups
+    return res.status(200).json({
+      status: 'success',
+      message: 'Expenses retrieved successfully for other users in your groups',
+      data: formattedExpenses
+    });
+
+  } catch (error) {
+    // Handle errors
+    console.error('Error retrieving expenses for other users:', error.message);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to retrieve expenses for other users',
+      error: error.message
+    });
+  }
+}
+
+
 
