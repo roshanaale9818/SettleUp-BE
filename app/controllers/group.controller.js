@@ -567,31 +567,78 @@ exports.getMembers = async (req, res) => {
   }
 }
 
+// exports.getGroupExpenses = async (req, res) => {
+//   const userId = req.userId;
+//   const { groupId } = req.query;
+//   try {
+//     if (!groupId) throw new Error("Group Id is required.")
+//     const expenses = await Expense.findAll({
+//       where: {
+//         groupId: groupId
+//       },
+//       include: [
+//         {
+//           model: Member,
+//         },
+//       ]
+//     });
+
+//     // Handle the case where no expenses are found
+//     if (!expenses || expenses.length === 0) {
+//       return res.status(200).json({
+//         status: 'error',
+//         message: 'No expenses found for other users in your groups',
+//         data: []
+//       });
+//     }
+
+//     // Return the list of expenses associated with other users in your groups
+//     return res.status(200).json({
+//       status: 'ok',
+//       message: 'Expenses retrieved successfully for other users in your groups',
+//       data: expenses
+//     });
+
+//   } catch (error) {
+//     // Handle errors
+//     return res.status(400).json({
+//       status: 'error',
+//       message: 'Failed to retrieve expenses',
+//       error: error.message
+//     });
+//   }
+// }
+
 exports.getGroupExpenses = async (req, res) => {
   const userId = req.userId;
   const { groupId } = req.query;
+  const page = parseInt(req.query.page) || 1; // Default to page 1
+  const pageSize = parseInt(req.query.pageSize) || 10; // Default page size
+
   try {
-    if (!groupId) throw new Error("Group Id is required.")
-    const expenses = await Expense.findAll({
+    if (!groupId) throw new Error("Group Id is required.");
+
+    const offset = (page - 1) * pageSize;
+
+    const expenses = await Expense.findAndCountAll({
       where: {
-        groupId: groupId
+        groupId: groupId,
       },
       include: [
         {
           model: Member,
         },
-        // {
-        //   model:Member
-        // }
-      ]
+      ],
+      limit: pageSize,
+      offset: offset,
     });
 
     // Handle the case where no expenses are found
-    if (!expenses || expenses.length === 0) {
+    if (!expenses || expenses.count === 0) {
       return res.status(200).json({
         status: 'error',
         message: 'No expenses found for other users in your groups',
-        data: []
+        data: [],
       });
     }
 
@@ -599,18 +646,20 @@ exports.getGroupExpenses = async (req, res) => {
     return res.status(200).json({
       status: 'ok',
       message: 'Expenses retrieved successfully for other users in your groups',
-      data: expenses
+      data: expenses.rows,
+      totalItems: expenses.count,
+      totalPages: Math.ceil(expenses.count / pageSize),
+      currentPage: page,
     });
-
   } catch (error) {
     // Handle errors
     return res.status(400).json({
       status: 'error',
       message: 'Failed to retrieve expenses',
-      error: error.message
+      error: error.message,
     });
   }
-}
+};
 
 
 
