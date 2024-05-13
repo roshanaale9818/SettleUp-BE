@@ -11,6 +11,7 @@ exports.addExpense = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { body } = req;
+    delete body.id; // delete the id 
     let expenseDataObj = {
       ...body,
       settlementStatus: SETTLEMENT_STATUS.PENDING,
@@ -20,7 +21,6 @@ exports.addExpense = async (req, res) => {
       verifiedBy: '0',
       groupId: body.group,
       MemberId: body.paidBy,
-      id:0
     }
     // 1. Create Expense
     const expense = await Expense.create(expenseDataObj, { transaction: t });
@@ -124,7 +124,7 @@ exports.getExpenseList = async (req, res) => {
   }
 };
 
-
+// all expenses
 exports.getAllExpenseList = async (req, res) => {
   const userId = req.userId;
   try {
@@ -211,9 +211,11 @@ exports.updateExpense = async (req, res) => {
     }
 
 
-    const existingGroup = await Group.findOne({where:{
-      id:body.group
-    }}, { transaction: t });
+    const existingGroup = await Group.findOne({
+      where: {
+        id: body.group
+      }
+    }, { transaction: t });
 
     let expenseDataObj = {
       ...body,
@@ -226,14 +228,14 @@ exports.updateExpense = async (req, res) => {
       MemberId: body.paidBy
     }
 
-     await Expense.update(expenseDataObj, {
+    await Expense.update(expenseDataObj, {
       transaction: t, where: {
         id: body.id ?? ""
       }
     });
     const expense = await Expense.findOne({})
-    where:{
-        id:body.id
+    where: {
+      id: body.id
     }
     // Update associations
     await expense.setGroup(existingGroup, { transaction: t });
@@ -290,5 +292,118 @@ exports.deleteExpense = async (req, res) => {
     return res.status(400).json(getResponseBody("error", err.message))
   }
 }
+
+
+// get all pending requests for the admin
+exports.getExpenseRequest = async (req, res) => {
+  const userId = req.userId;
+  const { page = 1, limit = 10 } = req.query;
+  try {
+    // Find all groups where the user is a member
+    const userGroups = await Group.findAll({
+      include: [
+        {
+          model: Member,
+          where: { userId: userId }
+        }
+      ], where: {
+        status: '1',
+      }
+    });
+    // Extract group IDs from the user's groups
+    const groupIds = userGroups.map(group => group.id);
+
+     // Find the total count of expenses associated with members of the user's groups
+     const totalCount = await Expense.count({
+      include: [
+        {
+          model: Member,
+          include: [
+            {
+              model: Group,
+              where: {
+                id: groupIds
+              },
+              attributes: []
+            }
+          ]
+        }
+      ],
+      where: {
+        settlementStatus: SETTLEMENT_STATUS.PENDING
+      }
+    });
+
+
+
+    // Find all expenses associated with members of the user's groups (excluding the user's own expenses)
+    const expenses = await Expense.findAll({
+      include: [
+        {
+          model: Member,
+          include: [
+            // { model: User }, // Include the user who added the expense
+            {
+              model: Group,
+              where: {
+                id: groupIds
+              },
+              attributes: ['groupName']
+            } // Include the group details
+          ]
+        }
+      ],
+      where: {
+        settlementStatus: SETTLEMENT_STATUS.PENDING
+      },
+      limit: parseInt(limit),
+      offset: (page - 1) * limit
+    });
+
+    // Handle the case where no expenses are found
+    if (!expenses || expenses.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No expenses found for other users in your groups',
+        data: []
+      });
+    }
+    // console.log("EXXXX", expenses)
+    // Format the response to include relevant details
+    const formattedExpenses = expenses.map(expense => ({
+      id: expense.id,
+      title: expense.title,
+      amount: expense.amount,
+      addedBy: expense.Member.memberName, // Assuming there's a username attribute in the User model
+      groupName: expense.Member.Groups[0].groupName,
+      createdAt:expense.createdAt,
+      isVerified:expense.isVerified,
+      verifiedBy:expense.verifiedBy,
+      updatedAt:expense.updatedAt,
+      description:expense.description,
+      createdBy:expense.Member.userId,
+      groupId:expense.Member.Groups[0].GroupMember.GroupId
+    }));
+
+    // Return the list of expenses associated with other users in your groups
+    return res.status(200).json({
+      status: 'ok',
+      message: 'Expenses retrieved successfull for other users in your groups',
+      data: formattedExpenses,
+      totalItems:totalCount
+    });
+
+  } catch (error) {
+    // Handle errors
+    console.error('Error retrieving expenses for other users:', error.message);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to retrieve expenses for other users',
+      error: error.message,
+      totalItems:0
+    });
+  }
+}
+
 
 
