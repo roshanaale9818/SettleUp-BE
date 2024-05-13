@@ -17,9 +17,5 @@ module.exports = function(app) {
   app.get(`${apiVersionPrefix}expense/list`, [authJwt.verifyToken],controller.getExpenseList);
   app.get(`${apiVersionPrefix}expense/all`, [authJwt.verifyToken],controller.getAllExpenseList);
   app.post(`${apiVersionPrefix}expense/update`, [authJwt.verifyToken, userIsInGroup], controller.updateExpense);
-
-
-  
-
-
+  app.post(`${apiVersionPrefix}expense/delete`, [authJwt.verifyToken], controller.deleteExpense);
 };

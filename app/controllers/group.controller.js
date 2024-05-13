@@ -190,7 +190,7 @@ exports.inviteToGroup = async (req, res) => {
       if (error) {
         return res.status(500).send(getResponseBody('error', error.message));
       }
-      return res.status(200).send(getResponseBody('ok', 'Invitation sent successfully!'));
+      return res.status(200).send(getResponseBody('ok', 'Invitation sent successfull!'));
     });
   }
   catch (err) {
@@ -645,7 +645,7 @@ exports.getGroupExpenses = async (req, res) => {
     // Return the list of expenses associated with other users in your groups
     return res.status(200).json({
       status: 'ok',
-      message: 'Expenses retrieved successfully for other users in your groups',
+      message: 'Expenses retrieved successfull for other users in your groups',
       data: expenses.rows,
       totalItems: expenses.count,
       totalPages: Math.ceil(expenses.count / pageSize),

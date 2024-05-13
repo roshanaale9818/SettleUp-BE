@@ -1,6 +1,6 @@
 const db = require('../models');
 const delay = require('../util/helper');
-const { getResponseBody } = require('../util/util');
+const { getResponseBody, SETTLEMENT_STATUS } = require('../util/util');
 const Expense = db.expense;
 const sequelize = db.sequelize;
 const Sequelize = require('sequelize')
@@ -13,13 +13,14 @@ exports.addExpense = async (req, res) => {
     const { body } = req;
     let expenseDataObj = {
       ...body,
-      settlementStatus: 'PENDING',
+      settlementStatus: SETTLEMENT_STATUS.PENDING,
       title: body.expenseTitle,
       status: '1',
       isVerified: '0',
-      verifiedBy: '0', 
+      verifiedBy: '0',
       groupId: body.group,
-      MemberId:body.paidBy
+      MemberId: body.paidBy,
+      id:0
     }
     // 1. Create Expense
     const expense = await Expense.create(expenseDataObj, { transaction: t });
@@ -39,7 +40,7 @@ exports.addExpense = async (req, res) => {
     // console.log('Transaction state:', t.finished);
     // Commit Transaction if not already committed or rolled back
     await t.commit();
-    return res.status(200).send(getResponseBody('ok', "Expense added successfully.", []));
+    return res.status(200).send(getResponseBody('ok', "Expense added successfull.", []));
   }
 
   catch (error) {
@@ -60,70 +61,71 @@ exports.getExpenseList = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1;
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
   try {
-  // Find all members associated with the given user ID
-  const {count,rows} = await Member.findAndCountAll({
-    where: { userId: Number(req.userId) }, // Filter by userId
-    include: [
-      {
-        model: Expense, // Include the Expense model to fetch associated expenses
-        include: [
-          {
-            model: Group, // Include the Group model to fetch associated group details
-            attributes: ['groupName'] // Specify the attributes to retrieve (e.g., groupName)
-          }
-        ],
-        required: true // Use inner join to only include members with associated expenses
-      }
-    ],
-    limit,
-    offset: (page - 1) * limit,
-  });
-  const members = rows;
+    // Find all members associated with the given user ID
+    const { count, rows } = await Member.findAndCountAll({
+      where: { userId: Number(req.userId) }, // Filter by userId
+      include: [
+        {
+          model: Expense, // Include the Expense model to fetch associated expenses
+          include: [
+            {
+              model: Group, // Include the Group model to fetch associated group details
+              attributes: ['groupName'] // Specify the attributes to retrieve (e.g., groupName)
+            }
+          ],
+          required: true // Use inner join to only include members with associated expenses
+        }
+      ],
+      limit,
+      offset: (page - 1) * limit,
+    });
+    const members = rows;
 
-  // Extract expenses and associated group names from the retrieved members
-  const expensesWithGroupNames = members.reduce((acc, member) => {
-    // Extract expenses associated with the current member
-    const memberExpenses = member.Expenses || [];
-    // Map each expense to include the associated group name
-    const expensesWithGroupName = memberExpenses.map(expense => ({
-      ...expense.toJSON(), // Convert Sequelize instance to plain JSON object
-      groupName: expense.Group ? expense.Group.groupName : null // Retrieve groupName if available
-    }));
-    // Concatenate the current member's expenses with group names to the accumulator array
-    return acc.concat(expensesWithGroupName);
-  }, []);
+    // Extract expenses and associated group names from the retrieved members
+    const expensesWithGroupNames = members.reduce((acc, member) => {
+      // Extract expenses associated with the current member
+      const memberExpenses = member.Expenses || [];
+      // Map each expense to include the associated group name
+      const expensesWithGroupName = memberExpenses.map(expense => ({
+        ...expense.toJSON(), // Convert Sequelize instance to plain JSON object
+        groupName: expense.Group ? expense.Group.groupName : null // Retrieve groupName if available
+      }));
+      // Concatenate the current member's expenses with group names to the accumulator array
+      return acc.concat(expensesWithGroupName);
+    }, []);
 
-  // Handle the case where no expenses are found for the user
-  if (!expensesWithGroupNames || expensesWithGroupNames.length === 0) {
+    // Handle the case where no expenses are found for the user
+    if (!expensesWithGroupNames || expensesWithGroupNames.length === 0) {
+      return res.status(200).json({
+        status: 'ok',
+        message: 'No expenses found for this user',
+        data: []
+      });
+    }
+
+    // Handle success scenario
     return res.status(200).json({
-      status: 'ok',
-      message: 'No expenses found for this user',
-      data: []
+      status: "ok",
+      message: 'Expenses retrieved successfull for the user with group names',
+      data: expensesWithGroupNames,
+      totalItems: count ? count : 0,
+      currentPage: page ? page : 1,
+      totalPages: Math.ceil(count / limit),
+
+    });
+  } catch (error) {
+    // Handle errors
+    console.error('Error retrieving expenses for user:', error.message);
+    return res.status(500).json({
+      status: "error",
+      message: 'Failed to retrieve expenses for user',
+      error: error.message
     });
   }
-
-  // Handle success scenario
-  return res.status(200).json({
-    status: "ok",
-    message: 'Expenses retrieved successfully for the user with group names',
-    data: expensesWithGroupNames,
-    totalItems:count ? count:0,
-    currentPage:page?page:1,
-    totalPages: Math.ceil(count / limit),
-
-  });
-} catch (error) {
-  // Handle errors
-  console.error('Error retrieving expenses for user:', error.message);
-  return res.status(500).json({
-    status: "error",
-    message: 'Failed to retrieve expenses for user',
-    error: error.message
-  });
-}};
+};
 
 
-exports.getAllExpenseList = async (req,res)=>{
+exports.getAllExpenseList = async (req, res) => {
   const userId = req.userId;
   try {
     // Find all groups where the user is a member
@@ -149,11 +151,13 @@ exports.getAllExpenseList = async (req,res)=>{
           },
           include: [
             // { model: User }, // Include the user who added the expense
-            { model: Group, 
-              where:{
-                  id:groupIds
+            {
+              model: Group,
+              where: {
+                id: groupIds
               },
-              attributes: ['groupName'] } // Include the group details
+              attributes: ['groupName']
+            } // Include the group details
           ]
         }
       ]
@@ -180,7 +184,7 @@ exports.getAllExpenseList = async (req,res)=>{
     // Return the list of expenses associated with other users in your groups
     return res.status(200).json({
       status: 'success',
-      message: 'Expenses retrieved successfully for other users in your groups',
+      message: 'Expenses retrieved successfull for other users in your groups',
       data: formattedExpenses
     });
 
@@ -196,48 +200,94 @@ exports.getAllExpenseList = async (req,res)=>{
 }
 
 
-exports.updateExpense = async(req,res)=>{
+exports.updateExpense = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
-    //get the user id from request 
-      const userId = req.userId;
-      const {data} = req.body;
-      const {groupId} = req.query;
-      if(!data) throw new Error("Expense is required");
-      if(!groupId) throw new Error ("Group id is required.");
-      // get the expense related to that group  
-      const expense = await Expense.findOne({where:{
-        id:data.id ??  ""
-      }});
-      if(!expense) throw new Error(`Expense cannot be found for ${data.id}`);
-      
-      // update the expense 
-      return res.status(200).json((getResponseBody("ok","Expense update success.")))
+    const { body } = req;
+    // Check if the provided ID exists in the database
+    const existingExpense = await Expense.findOne({ where: { id: body.id } });
+    if (!existingExpense) {
+      throw new Error('Expense not found');
+    }
+
+
+    const existingGroup = await Group.findOne({where:{
+      id:body.group
+    }}, { transaction: t });
+
+    let expenseDataObj = {
+      ...body,
+      settlementStatus: SETTLEMENT_STATUS.PENDING,
+      title: body.expenseTitle,
+      status: '1',
+      isVerified: '0',
+      verifiedBy: '0',
+      groupId: body.group,
+      MemberId: body.paidBy
+    }
+
+     await Expense.update(expenseDataObj, {
+      transaction: t, where: {
+        id: body.id ?? ""
+      }
+    });
+    const expense = await Expense.findOne({})
+    where:{
+        id:body.id
+    }
+    // Update associations
+    await expense.setGroup(existingGroup, { transaction: t });
+    const member = await Member.findOne({ where: { id: parseInt(body.paidBy) }, transaction: t });
+    if (!member) throw new Error('Member not found');
+    await member.addExpense(expense, { transaction: t });
+
+    // Commit Transaction if not already committed or rolled back
+    await t.commit();
+    return res.status(200).send(getResponseBody('ok', "Expense updated successfull.", []));
   }
-  catch (err){
-      return res.status(500).json(getResponseBody("error",err.message))
+
+  catch (error) {
+    console.log(error)
+    await t.rollback();
+    if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+      const errors = error.errors.map(err => err.message);
+      return res.status(400).json({ status: "error", errors });
+    } else {
+      return res.status(500).send(getResponseBody('error', error.message, []));
+    }
   }
 }
 
 // delete the expense 
-exports.deleteExpense = async(req,res)=>{
+exports.deleteExpense = async (req, res) => {
   try {
     //get the user id from request 
-      const userId = req.userId;
-      const {data} = req.body;
-      const {groupId} = req.query;
-      if(!data) throw new Error("Expense is required");
-      if(!groupId) throw new Error ("Group id is required.");
-      // get the expense related to that group  
-      const expense = await Expense.findOne({where:{
-        id:data.id ??  ""
-      }});
-      if(!expense) throw new Error(`Expense cannot be found for ${data.id}`);
-      
-      // update the expense 
-      return res.status(200).json((getResponseBody("ok","Expense update success.")))
+    // const userId = req.userId;
+    const { expenseId } = req.body;
+    if (!expenseId) throw new Error("Expense is required");
+    // get the expense related to that group  
+    const expense = await Expense.findOne({
+      where: {
+        id: expenseId ?? ""
+      }
+    });
+    // console.log("expense found",expense);
+    if (!expense) throw new Error(`Expense cannot be found for ${expenseId}`);
+    if (expense.settlementStatus.toLowerCase() === 'settled') {
+      return res.status(403).json(getResponseBody('error', 'Settled amount cannot be deleted.'));
+    }
+    // delete the expense 
+    const result = await Expense.destroy({
+      where: {
+        id: expenseId
+      }
+    });
+    if (!result) throw new Error("Error in deleting expense");
+    // update the expense 
+    return res.status(200).json((getResponseBody("ok", "Expense update success.")))
   }
-  catch (err){
-      return res.status(500).json(getResponseBody("error",err.message))
+  catch (err) {
+    return res.status(400).json(getResponseBody("error", err.message))
   }
 }
 

@@ -97,7 +97,7 @@ exports.deleteImage = async(req,res)=>{
       // Delete the image record from the database
       await image.destroy();
   
-      return  res.status(200).json({status:'ok', message: 'Deleted successfully.' });
+      return  res.status(200).json({status:'ok', message: 'Deleted successfull.' });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: 'Internal Server Error; Something went wrong in deleting image;' });
