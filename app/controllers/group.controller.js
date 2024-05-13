@@ -633,7 +633,7 @@ exports.getGroupExpenses = async (req, res) => {
       offset: offset,
     });
 
-    // Handle the case where no expenses are found
+    // the case where no expenses are found
     if (!expenses || expenses.count === 0) {
       return res.status(200).json({
         status: 'error',

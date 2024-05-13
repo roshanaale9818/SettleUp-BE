@@ -195,3 +195,50 @@ exports.getAllExpenseList = async (req,res)=>{
   }
 }
 
+
+exports.updateExpense = async(req,res)=>{
+  try {
+    //get the user id from request 
+      const userId = req.userId;
+      const {data} = req.body;
+      const {groupId} = req.query;
+      if(!data) throw new Error("Expense is required");
+      if(!groupId) throw new Error ("Group id is required.");
+      // get the expense related to that group  
+      const expense = await Expense.findOne({where:{
+        id:data.id ??  ""
+      }});
+      if(!expense) throw new Error(`Expense cannot be found for ${data.id}`);
+      
+      // update the expense 
+      return res.status(200).json((getResponseBody("ok","Expense update success.")))
+  }
+  catch (err){
+      return res.status(500).json(getResponseBody("error",err.message))
+  }
+}
+
+// delete the expense 
+exports.deleteExpense = async(req,res)=>{
+  try {
+    //get the user id from request 
+      const userId = req.userId;
+      const {data} = req.body;
+      const {groupId} = req.query;
+      if(!data) throw new Error("Expense is required");
+      if(!groupId) throw new Error ("Group id is required.");
+      // get the expense related to that group  
+      const expense = await Expense.findOne({where:{
+        id:data.id ??  ""
+      }});
+      if(!expense) throw new Error(`Expense cannot be found for ${data.id}`);
+      
+      // update the expense 
+      return res.status(200).json((getResponseBody("ok","Expense update success.")))
+  }
+  catch (err){
+      return res.status(500).json(getResponseBody("error",err.message))
+  }
+}
+
+
