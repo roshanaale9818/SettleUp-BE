@@ -299,17 +299,20 @@ exports.getExpenseRequest = async (req, res) => {
   const userId = req.userId;
   const { page = 1, limit = 10 } = req.query;
   try {
-    // Find all groups where the user is a member
+    // Find all groups where the user is a Admin
     const userGroups = await Group.findAll({
       include: [
         {
           model: Member,
-          where: { userId: userId }
+          where: { userId: userId,isAdmin:"1" }
         }
       ], where: {
         status: '1',
       }
     });
+
+
+
     // Extract group IDs from the user's groups
     const groupIds = userGroups.map(group => group.id);
 
@@ -368,7 +371,6 @@ exports.getExpenseRequest = async (req, res) => {
         data: []
       });
     }
-    // console.log("EXXXX", expenses)
     // Format the response to include relevant details
     const formattedExpenses = expenses.map(expense => ({
       id: expense.id,
@@ -385,12 +387,14 @@ exports.getExpenseRequest = async (req, res) => {
       groupId:expense.Member.Groups[0].GroupMember.GroupId
     }));
 
-    // Return the list of expenses associated with other users in your groups
+    // Return the list of expenses
     return res.status(200).json({
       status: 'ok',
-      message: 'Expenses retrieved successfull for other users in your groups',
+      message: 'Expenses retrieved successfull',
       data: formattedExpenses,
-      totalItems:totalCount
+      totalItems: totalCount ? totalCount : 0,
+      currentPage: page ? page : 1,
+      totalPages: Math.ceil(totalCount / limit),
     });
 
   } catch (error) {
@@ -402,6 +406,36 @@ exports.getExpenseRequest = async (req, res) => {
       error: error.message,
       totalItems:0
     });
+  }
+}
+
+
+// update expense Request 
+exports.updateExpenseRequest = async (req,res)=>{
+  const {body:expenseBody} = req;
+  const userId = req.userId;
+  try{
+    const {id} = expenseBody;
+    if(!id) throw new Error("Expense id cannot be found on payload.")
+    const expense = await Expense.findOne({
+      where:{
+        id:expenseBody.id
+      } 
+    });
+    if(!expense) throw new Error("Expense cannot be found.");
+    // if expense is found update the expense 
+    const result = await Expense.update({
+      settlementStatus:expenseBody.settlementStatus,
+      isVerified:"1",
+      verifiedBy:userId
+    },{where:{
+      id:id 
+    }})
+    if(!result) throw new Error("Something went wrong while saving");
+    return res.status(200).json(getResponseBody('ok','Expense saved successfull.'))
+  }
+  catch(error){
+    return res.status(500).json(getResponseBody('error',error.message))
   }
 }
 
