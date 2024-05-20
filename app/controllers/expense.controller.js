@@ -228,7 +228,7 @@ exports.updateExpense = async (req, res) => {
       ...body,
       settlementStatus: SETTLEMENT_STATUS.PENDING,
       title: body.expenseTitle,
-      status: "1",
+      status: SETTLEMENT_STATUS.PENDING,
       isVerified: "0",
       verifiedBy: "0",
       groupId: body.group,
@@ -375,7 +375,6 @@ exports.getExpenseRequest = async (req, res) => {
       limit: parseInt(limit),
       offset: (page - 1) * limit,
     });
-
     // Handle the case where no expenses are found
     if (!expenses || expenses.length === 0) {
       return res.status(200).json({

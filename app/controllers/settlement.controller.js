@@ -40,10 +40,6 @@ exports.createSettlement = async (req, res) => {
     });
     if (!member) throw new Error("Member not found");
     await member.addExpense(expense, { transaction: t });
-    // const memberIsSet = await expense.setMember(member,{ transaction: t });
-    // console.log(memberIsSet);
-
-    // console.log('Transaction state:', t.finished);
     // Commit Transaction if not already committed or rolled back
     await t.commit();
     return res
