@@ -1,105 +1,107 @@
-const Sequelize = require('sequelize');
-module.exports =  (sequelize) => {
-    const Expense =  sequelize.define("Expense", { 
+const Sequelize = require("sequelize");
+module.exports = (sequelize) => {
+  const Expense = sequelize.define(
+    "Expense",
+    {
       title: {
         type: Sequelize.TEXT,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"Title is required."
+        validate: {
+          notEmpty: {
+            msg: "Title is required.",
           },
-          notNull:{
-            msg:'Title cannot be null'
-          }
-        }
+          notNull: {
+            msg: "Title cannot be null",
+          },
+        },
       },
       amount: {
         type: Sequelize.FLOAT,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"Expense Amount is required."
+        validate: {
+          notEmpty: {
+            msg: "Expense Amount is required.",
           },
-          notNull:{
-            msg:'Expense Amount cannot be null'
-          }
-        }
+          notNull: {
+            msg: "Expense Amount cannot be null",
+          },
+        },
       },
       groupId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"GroupId is required."
+        validate: {
+          notEmpty: {
+            msg: "GroupId is required.",
           },
-          notNull:{
-            msg:'GroupId cannot be null'
-          }
-        }
+          notNull: {
+            msg: "GroupId cannot be null",
+          },
+        },
       },
       settlementStatus: {
         type: Sequelize.STRING,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"Status is required."
+        validate: {
+          notEmpty: {
+            msg: "Status is required.",
           },
-          notNull:{
-            msg:'Status cannot be null'
-          }
-        }
+          notNull: {
+            msg: "Status cannot be null",
+          },
+        },
       },
       description: {
         type: Sequelize.TEXT,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"Description is required."
+        validate: {
+          notEmpty: {
+            msg: "Description is required.",
           },
-          notNull:{
-            msg:'Description cannot be null'
-          }
-        }
+          notNull: {
+            msg: "Description cannot be null",
+          },
+        },
       },
       status: {
         type: Sequelize.STRING,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"Status is required."
+        validate: {
+          notEmpty: {
+            msg: "Status is required.",
           },
-          notNull:{
-            msg:'Status cannot be null'
-          }
-        }
+          notNull: {
+            msg: "Status cannot be null",
+          },
+        },
       },
       remarks: {
         type: Sequelize.STRING,
-        allowNull:true
+        allowNull: true,
       },
       isVerified: {
         type: Sequelize.STRING,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"Verified is required."
+        validate: {
+          notEmpty: {
+            msg: "Verified is required.",
           },
-          notNull:{
-            msg:'Verified cannot be null'
-          }
-        }
+          notNull: {
+            msg: "Verified cannot be null",
+          },
+        },
       },
       verifiedBy: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
         allowNull: false,
-        validate:{
-          notEmpty:{
-            msg:"Verified By is required."
+        validate: {
+          notEmpty: {
+            msg: "Verified By is required.",
           },
-          notNull:{
-            msg:'Verified By cannot be null'
-          }
-        }
+          notNull: {
+            msg: "Verified By cannot be null",
+          },
+        },
       },
       // MemberId:{
       //   type: Sequelize.STRING,
@@ -113,10 +115,11 @@ module.exports =  (sequelize) => {
       //     }
       //   }
       // }
-      
-    },{
-        tableName:'expense'
-    });
-  
+    },
+    {
+      tableName: "expense",
+    }
+  );
+
   return Expense;
-  };
+};

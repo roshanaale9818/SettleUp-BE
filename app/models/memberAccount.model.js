@@ -2,8 +2,8 @@
 // one expense can have one settlement
 const Sequelize = require("sequelize");
 module.exports = (sequelize) => {
-  const GroupSettlement = sequelize.define("groupSettlement", {
-    groupId: {
+  const MemberAccount = sequelize.define("memberAccount", {
+    memberId: {
       type: Sequelize.INTEGER,
       allowNull: false,
       validate: {
@@ -29,5 +29,5 @@ module.exports = (sequelize) => {
     },
   });
 
-  return GroupSettlement;
+  return MemberAccount;
 };

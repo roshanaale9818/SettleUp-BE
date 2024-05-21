@@ -11,14 +11,16 @@ exports.createSettlement = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { body } = req;
-    delete body.id; // delete the id
+    const { groupId } = req.query;
+    if (!groupId) throw new Error("Group id cannot be null");
+
     let expenseDataObj = {
       ...body,
       settlementStatus: SETTLEMENT_STATUS.PENDING,
       title: body.expenseTitle,
       status: "1",
       isVerified: "0",
-      verifiedBy: "0",
+      verifiedBy: 0,
       groupId: body.group,
       MemberId: body.paidBy,
     };
@@ -226,7 +228,7 @@ exports.updateExpense = async (req, res) => {
       title: body.expenseTitle,
       status: "1",
       isVerified: "0",
-      verifiedBy: "0",
+      verifiedBy: 0,
       groupId: body.group,
       MemberId: body.paidBy,
     };
@@ -267,5 +269,61 @@ exports.updateExpense = async (req, res) => {
     } else {
       return res.status(500).send(getResponseBody("error", error.message, []));
     }
+  }
+};
+
+// get expense preview
+
+exports.getAcceptedExpenses = async (req, res) => {
+  const userId = req.userId;
+  const { groupId } = req.query;
+  const page = parseInt(req.query.page) || 1; // Default to page 1
+  const pageSize = parseInt(req.query.pageSize) || 100; // Default page size
+
+  try {
+    if (!groupId) throw new Error("Group Id is required.");
+
+    const offset = (page - 1) * pageSize;
+
+    const expenses = await Expense.findAndCountAll({
+      where: {
+        groupId: groupId,
+        status: SETTLEMENT_STATUS.ACCEPTED,
+      },
+      include: [
+        {
+          model: Member,
+        },
+        { model: User },
+      ],
+      limit: pageSize,
+      offset: offset,
+    });
+
+    // the case where no expenses are found
+    if (!expenses || expenses.count === 0) {
+      return res.status(200).json({
+        status: "error",
+        message: "No expenses found for other users in your groups",
+        data: [],
+      });
+    }
+
+    // Return the list of expenses associated with other users in your groups
+    return res.status(200).json({
+      status: "ok",
+      message: "Expenses retrieved successfull.",
+      data: expenses.rows,
+      totalItems: expenses.count,
+      totalPages: Math.ceil(expenses.count / pageSize),
+      currentPage: page,
+    });
+  } catch (error) {
+    // Handle errors
+    return res.status(400).json({
+      status: "error",
+      message: "Failed to retrieve expenses",
+      error: error.message,
+    });
   }
 };

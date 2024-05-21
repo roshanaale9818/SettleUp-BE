@@ -14,7 +14,7 @@ module.exports = (sequelize) => {
       defaultValue: Sequelize.NOW,
     },
     settlementId: {
-      type: Sequelize.STRING,
+      type: Sequelize.INTEGER,
       allowNull: false,
     },
     isSettled: {

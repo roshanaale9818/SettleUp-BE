@@ -1,41 +1,41 @@
-module.exports =  (sequelize, Sequelize) => {
-  const User =  sequelize.define("users", { 
+module.exports = (sequelize, Sequelize) => {
+  const User = sequelize.define("users", {
     email: {
       type: Sequelize.STRING,
       allowNull: false,
       unique: true,
-      validate:{
-        notEmpty:{
-          msg:"Email is required."
+      validate: {
+        notEmpty: {
+          msg: "Email is required.",
         },
-        notNull:{
-          msg:'Email cannot be null'
-        }
-      }
+        notNull: {
+          msg: "Email cannot be null",
+        },
+      },
     },
     password: {
       type: Sequelize.STRING,
       allowNull: false,
-      validate:{
-        notEmpty:{
-          msg:"Password is required."
+      validate: {
+        notEmpty: {
+          msg: "Password is required.",
         },
-        notNull:{
-          msg:'Password cannot be null'
-        }
-      }
+        notNull: {
+          msg: "Password cannot be null",
+        },
+      },
     },
     firstName: {
       type: Sequelize.STRING,
       allowNull: false,
-      validate:{
-        notEmpty:{
-          msg:"First name is required."
+      validate: {
+        notEmpty: {
+          msg: "First name is required.",
         },
-        notNull:{
-          msg:'First name cannot be null'
-        }
-      }
+        notNull: {
+          msg: "First name cannot be null",
+        },
+      },
     },
     middleName: {
       type: Sequelize.STRING,
@@ -44,26 +44,26 @@ module.exports =  (sequelize, Sequelize) => {
     lastName: {
       type: Sequelize.STRING,
       allowNull: false,
-      validate:{
-        notNull:{
-          msg:'Last Name cannot be null'
+      validate: {
+        notNull: {
+          msg: "Last Name cannot be null",
         },
-        notEmpty:{
-          msg:"Last name is required."
+        notEmpty: {
+          msg: "Last name is required.",
         },
-      }
+      },
     },
     contact: {
       type: Sequelize.STRING,
       allowNull: false,
-      validate:{
-        notNull:{
-          msg:'Contact cannot be null'
+      validate: {
+        notNull: {
+          msg: "Contact cannot be null",
         },
-        notEmpty:{
-          msg:"Contact is required."
+        notEmpty: {
+          msg: "Contact is required.",
         },
-      }
+      },
     },
     status: {
       type: Sequelize.STRING,
@@ -76,26 +76,26 @@ module.exports =  (sequelize, Sequelize) => {
     postalCode: {
       type: Sequelize.STRING,
       allowNull: false,
-      validate:{
-        notNull:{
-          msg:'Postal code cannot be null'
+      validate: {
+        notNull: {
+          msg: "Postal code cannot be null",
         },
-        notEmpty:{
-          msg:"Postal Code is required."
+        notEmpty: {
+          msg: "Postal Code is required.",
         },
-      }
+      },
     },
     country: {
       type: Sequelize.STRING,
       allowNull: false,
-      validate:{
-        notNull:{
-          msg:'Country cannot be null'
+      validate: {
+        notNull: {
+          msg: "Country cannot be null",
         },
-        notEmpty:{
-          msg:"Country is required."
+        notEmpty: {
+          msg: "Country is required.",
         },
-      }
+      },
     },
     isVerified: {
       type: Sequelize.STRING,
@@ -104,16 +104,20 @@ module.exports =  (sequelize, Sequelize) => {
     street: {
       type: Sequelize.STRING,
       allowNull: false,
-      validate:{
-        notNull:{
-          msg:'Street cannot be null'
+      validate: {
+        notNull: {
+          msg: "Street cannot be null",
         },
-        notEmpty:{
-          msg:"Street is required."
+        notEmpty: {
+          msg: "Street is required.",
         },
-      }
+      },
+    },
+    imgUrl: {
+      type: Sequelize.STRING,
+      allowNull: true,
     },
   });
 
-return User;
+  return User;
 };

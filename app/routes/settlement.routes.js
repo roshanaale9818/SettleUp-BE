@@ -1,5 +1,5 @@
 const { authJwt } = require("../middleware");
-const controller = require("../controllers/expense.controller");
+const controller = require("../controllers/settlement.controller");
 const apiVersionPrefix = require("../config/verison");
 const { userIsInGroup } = require("../middleware/verifyGroup");
 
@@ -14,11 +14,11 @@ module.exports = function (app) {
   app.post(
     `${apiVersionPrefix}settlement/create`,
     [authJwt.verifyToken, userIsInGroup],
-    controller.addExpense
+    controller.createSettlement
   );
   app.get(
-    `${apiVersionPrefix}settlement/list`,
+    `${apiVersionPrefix}settlement/preview/expense`,
     [authJwt.verifyToken],
-    controller.getExpenseList
+    controller.getAcceptedExpenses
   );
 };

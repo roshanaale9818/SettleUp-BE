@@ -1,7 +1,7 @@
 {
   "name": "expensesharebackend",
   "version": "1.0.0",
-  "description": "portfolio backend with postgres and node",
+  "description": "Expense Share app for sharing your group expense.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

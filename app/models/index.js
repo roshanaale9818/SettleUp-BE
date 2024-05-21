@@ -17,6 +17,7 @@ const ExpenseSettlement = require("./settlementexpense.model");
 const GroupSettlement = require("./groupSettlement.model");
 const Sequelize = require("sequelize");
 const Balance = require("./accountBalance.model");
+const MemberAccount = require("./memberAccount.model");
 const sequelize = new Sequelize(
   config.DB,
   config.USER,
@@ -58,6 +59,7 @@ db.settlement = SettlementModel(sequelize);
 db.groupSettement = GroupSettlement(sequelize);
 
 db.accountBalance = Balance(sequelize);
+db.memberAccount = MemberAccount(sequelize);
 
 // association between entities
 // through, foreignKey, otherKey, is for a new table user_roles as
@@ -104,7 +106,13 @@ db.member.belongsTo(db.user);
 db.settlement.belongsToMany(db.expense, {
   through: db.expenseSettlement,
 });
+db.settlement.belongsToMany(db.member, {
+  through: db.memberAccount,
+});
+
 db.group.hasMany(db.settlement);
 db.settlement.hasMany(db.accountBalance);
+db.expense.belongsTo(db.user, { foreignKey: "verifiedBy" });
+
 db.ROLES = ["user", "admin", "moderator", "superadmin"];
 module.exports = db;
