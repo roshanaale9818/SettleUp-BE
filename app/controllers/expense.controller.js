@@ -18,7 +18,7 @@ exports.addExpense = async (req, res) => {
       title: body.expenseTitle,
       status: SETTLEMENT_STATUS.PENDING,
       isVerified: "0",
-      verifiedBy: "0",
+      verifiedBy: 0,
       groupId: body.group,
       MemberId: body.paidBy,
     };
@@ -230,7 +230,7 @@ exports.updateExpense = async (req, res) => {
       title: body.expenseTitle,
       status: SETTLEMENT_STATUS.PENDING,
       isVerified: "0",
-      verifiedBy: "0",
+      verifiedBy: 0,
       groupId: body.group,
       MemberId: body.paidBy,
     };
