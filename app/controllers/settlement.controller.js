@@ -275,26 +275,36 @@ exports.updateExpense = async (req, res) => {
 // get expense preview
 
 exports.getAcceptedExpenses = async (req, res) => {
+  console.log("onAcceptedExpense");
   const userId = req.userId;
   const { groupId } = req.query;
   const page = parseInt(req.query.page) || 1; // Default to page 1
-  const pageSize = parseInt(req.query.pageSize) || 100; // Default page size
+  const pageSize = parseInt(req.query.limit) || 100; // Default page size
 
   try {
     if (!groupId) throw new Error("Group Id is required.");
 
     const offset = (page - 1) * pageSize;
 
+    console.log("groupId", groupId);
+    const parsedGroupId = parseInt(groupId, 10);
+    if (isNaN(parsedGroupId)) {
+      throw new Error("Invalid Group Id.");
+    }
     const expenses = await Expense.findAndCountAll({
       where: {
-        groupId: groupId,
+        groupId: parseInt(groupId),
         status: SETTLEMENT_STATUS.ACCEPTED,
+        isVerified: "1",
       },
       include: [
         {
           model: Member,
+          include: [{ model: User, attributes: { exclude: ["password"] } }],
         },
-        { model: User },
+        {
+          model: Group,
+        },
       ],
       limit: pageSize,
       offset: offset,
@@ -302,7 +312,7 @@ exports.getAcceptedExpenses = async (req, res) => {
 
     // the case where no expenses are found
     if (!expenses || expenses.count === 0) {
-      return res.status(200).json({
+      return res.status(401).json({
         status: "error",
         message: "No expenses found for other users in your groups",
         data: [],
@@ -320,6 +330,7 @@ exports.getAcceptedExpenses = async (req, res) => {
     });
   } catch (error) {
     // Handle errors
+    console.error(error);
     return res.status(400).json({
       status: "error",
       message: "Failed to retrieve expenses",
@@ -327,7 +338,6 @@ exports.getAcceptedExpenses = async (req, res) => {
     });
   }
 };
-
 // get group list with members with the token and user
 exports.getAdminGroups = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1;

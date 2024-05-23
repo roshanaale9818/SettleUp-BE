@@ -1,7 +1,7 @@
 const { authJwt } = require("../middleware");
 const controller = require("../controllers/settlement.controller");
 const apiVersionPrefix = require("../config/verison");
-const { userIsInGroup } = require("../middleware/verifyGroup");
+const { userIsInGroup, userIsAdmin } = require("../middleware/verifyGroup");
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -18,7 +18,7 @@ module.exports = function (app) {
   );
   app.get(
     `${apiVersionPrefix}settlement/preview/expense`,
-    [authJwt.verifyToken],
+    [authJwt.verifyToken, userIsInGroup, userIsAdmin],
     controller.getAcceptedExpenses
   );
 
