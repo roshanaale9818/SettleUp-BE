@@ -21,4 +21,10 @@ module.exports = function (app) {
     [authJwt.verifyToken],
     controller.getAcceptedExpenses
   );
+
+  app.get(
+    `${apiVersionPrefix}settlement/group`,
+    [authJwt.verifyToken],
+    controller.getAdminGroups
+  );
 };

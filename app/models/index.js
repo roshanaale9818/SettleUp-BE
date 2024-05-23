@@ -98,7 +98,6 @@ db.expense.belongsToMany(db.receipt, {
   through: db.expenseReceipt,
 });
 db.expense.belongsTo(db.settlement);
-
 db.user.hasMany(db.member);
 db.member.belongsTo(db.user);
 

@@ -327,3 +327,55 @@ exports.getAcceptedExpenses = async (req, res) => {
     });
   }
 };
+
+// get group list with members with the token and user
+exports.getAdminGroups = async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+  try {
+    const { count, rows } = await Group.findAndCountAll({
+      include: [
+        {
+          model: Member,
+          where: {
+            userId: String(req.userId),
+            isAdmin: "1",
+          },
+          attributes: {
+            exclude: ["group_members"],
+          },
+        },
+      ],
+      where: {
+        status: "1",
+      },
+      limit,
+      offset: (page - 1) * limit,
+      raw: true,
+      attributes: {
+        exclude: [""],
+      },
+    });
+
+    const dataRows = rows.map((group) => ({
+      id: group.id,
+      imgUrl: group.imgUrl,
+      groupName: group.groupName,
+      status: group.status,
+      remarks: group.remarks,
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
+      isAdmin: group["Members.isAdmin"], // Access isAdmin directly from the flattened structure
+    }));
+
+    res.status(200).json({
+      status: "ok",
+      totalItems: count ? count : 0,
+      data: dataRows,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).send(getResponseBody("error", error.message, []));
+  }
+};
