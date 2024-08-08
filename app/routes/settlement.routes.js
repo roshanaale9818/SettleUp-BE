@@ -27,4 +27,9 @@ module.exports = function (app) {
     [authJwt.verifyToken],
     controller.getAdminGroups
   );
+  app.get(
+    `${apiVersionPrefix}settlement`,
+    [authJwt.verifyToken],
+    controller.getSettlements
+  );
 };

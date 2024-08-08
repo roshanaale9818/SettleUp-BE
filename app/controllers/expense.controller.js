@@ -4,6 +4,7 @@ const { getResponseBody, SETTLEMENT_STATUS } = require("../util/util");
 const Expense = db.expense;
 const sequelize = db.sequelize;
 const Sequelize = require("sequelize");
+// const nano = require("nanoid");
 const Member = db.member;
 const Group = db.group;
 const User = db.user;
@@ -228,8 +229,8 @@ exports.updateExpense = async (req, res) => {
       ...body,
       settlementStatus: SETTLEMENT_STATUS.PENDING,
       title: body.expenseTitle,
-      status: SETTLEMENT_STATUS.PENDING,
-      isVerified: "0",
+      // status: body.status,
+      isVerified: body.isVerified ? "1" : "0",
       verifiedBy: 0,
       groupId: body.group,
       MemberId: body.paidBy,

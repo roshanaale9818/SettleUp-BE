@@ -7,6 +7,7 @@ const Sequelize = require("sequelize");
 const Member = db.member;
 const Group = db.group;
 const User = db.user;
+const Settlement = db.settlement;
 exports.createSettlement = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -170,7 +171,7 @@ exports.getSettlementDetail = async (req, res) => {
 
     // Handle the case where no expenses are found
     if (!expenses || expenses.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
         status: "error",
         message: "No expenses found for other users in your groups",
         data: [],
@@ -275,7 +276,6 @@ exports.updateExpense = async (req, res) => {
 // get expense preview
 
 exports.getAcceptedExpenses = async (req, res) => {
-  console.log("onAcceptedExpense");
   const userId = req.userId;
   const { groupId } = req.query;
   const page = parseInt(req.query.page) || 1; // Default to page 1
@@ -285,8 +285,6 @@ exports.getAcceptedExpenses = async (req, res) => {
     if (!groupId) throw new Error("Group Id is required.");
 
     const offset = (page - 1) * pageSize;
-
-    console.log("groupId", groupId);
     const parsedGroupId = parseInt(groupId, 10);
     if (isNaN(parsedGroupId)) {
       throw new Error("Invalid Group Id.");
@@ -312,9 +310,9 @@ exports.getAcceptedExpenses = async (req, res) => {
 
     // the case where no expenses are found
     if (!expenses || expenses.count === 0) {
-      return res.status(401).json({
+      return res.status(200).json({
         status: "error",
-        message: "No expenses found for other users in your groups",
+        message: "No expenses found.",
         data: [],
       });
     }
@@ -385,6 +383,56 @@ exports.getAdminGroups = async (req, res) => {
       totalPages: Math.ceil(count / limit),
       currentPage: page,
     });
+  } catch (error) {
+    res.status(500).send(getResponseBody("error", error.message, []));
+  }
+};
+
+exports.getSettlements = async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+  try {
+    return res.status(200).json({
+      status: "ok",
+      totalItems: 0,
+      data: [],
+      totalPages: 0,
+      currentPage: 0,
+    });
+    const { count, rows } = await Settlement.findAndCountAll({
+      include: [
+        {
+          model: Settlement,
+          where: {
+            userId: String(req.userId),
+            isAdmin: "1",
+          },
+          attributes: {
+            exclude: ["group_members"],
+          },
+        },
+      ],
+      where: {
+        status: "1",
+      },
+      limit,
+      offset: (page - 1) * limit,
+      raw: true,
+      attributes: {
+        exclude: [""],
+      },
+    });
+
+    const dataRows = rows.map((group) => ({
+      id: group.id,
+      imgUrl: group.imgUrl,
+      groupName: group.groupName,
+      status: group.status,
+      remarks: group.remarks,
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
+      isAdmin: group["Members.isAdmin"], // Access isAdmin directly from the flattened structure
+    }));
   } catch (error) {
     res.status(500).send(getResponseBody("error", error.message, []));
   }
