@@ -1,10 +1,14 @@
 const db = require("../models");
+require("dotenv").config();
+
 const User = db.user;
 const Token = db.token;
 const bcrypt = require("bcryptjs");
 const isRequiredMessage = require("../util/validateRequest");
 const TokenGenerator = require("../util/token");
 const delay = require("./../util/helper");
+const { transporter } = require("./group.controller");
+const { getResponseBody } = require("../util/util");
 
 // user login
 exports.login = async (req, res) => {
@@ -187,5 +191,61 @@ exports.logout = (req, res) => {
   } catch (err) {
     console.log("CAUGHT ERROR", err);
     res.status(400).send({ status: "error", message: err });
+  }
+};
+
+exports.sendResetPasswordEmail = async (req, res) => {
+  try {
+    await delay(2000); // awaiting delaying the request to process.
+    let { email } = req.body;
+    if (!email) {
+      res
+        .status(400)
+        .send({ status: "error", message: isRequiredMessage("Email") });
+    } else {
+      const user = await User.findOne({
+        where: {
+          email: email || null,
+        },
+      });
+      if (!user) {
+        return res.status(200).send({
+          status: "ok",
+          message:
+            "If your email matches the registered email. You will get an email to reset your password.",
+          data: [],
+        });
+      }
+      const mailOptions = {
+        from: "expenseshareauth@gmail.com", // Sender address
+        to: user.email, // List of receivers
+        subject: "Reset Password", // Subject line
+        template: "resetPassword", // The template name
+        context: {
+          // Data to be sent to Handlebars template
+          inviteTo: email,
+          resetLink:
+            process.env.RESETPASSWORDLINK ||
+            "http://localhost:3000/resetpassword",
+          resetKey: "sadasdasdasdasdasrqwerqwerqwr",
+        },
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          return res.status(500).send(getResponseBody("error", error.message));
+        }
+        return res
+          .status(200)
+          .send(
+            getResponseBody(
+              "ok",
+              "If your email matches the registered email. You will get an email to reset your password."
+            )
+          );
+      });
+    }
+  } catch (error) {
+    res.status(500).send({ status: "error", message: "Something went wrong." });
   }
 };

@@ -703,3 +703,4 @@ exports.getGroupExpenses = async (req, res) => {
     });
   }
 };
+exports.transporter = transporter;

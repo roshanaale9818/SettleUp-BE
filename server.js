@@ -45,7 +45,7 @@ routes(app);
 // let dev = process.env.MODE || "TEST";
 // {force:true}
 db.sequelize.sync().then(() => {
-  console.log("database created");
+  console.log("database initated");
   initial(); // creates 3 rows in database
 });
 const initial = async () => {
