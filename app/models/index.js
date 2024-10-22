@@ -18,6 +18,7 @@ const GroupSettlement = require("./groupSettlement.model");
 const Sequelize = require("sequelize");
 const Balance = require("./accountBalance.model");
 const MemberAccount = require("./memberAccount.model");
+const PasswordResetToken = require("./passwordResetToken.model");
 const sequelize = new Sequelize(
   config.DB,
   config.USER,
@@ -60,6 +61,7 @@ db.groupSettement = GroupSettlement(sequelize);
 
 db.accountBalance = Balance(sequelize);
 db.memberAccount = MemberAccount(sequelize);
+db.passwordResetToken = PasswordResetToken(sequelize);
 
 // association between entities
 // through, foreignKey, otherKey, is for a new table user_roles as

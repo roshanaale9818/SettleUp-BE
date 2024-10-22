@@ -9,6 +9,9 @@ const TokenGenerator = require("../util/token");
 const delay = require("./../util/helper");
 const { transporter } = require("./group.controller");
 const { getResponseBody } = require("../util/util");
+const requestPasswordReset =
+  require("../services/auth.service").requestPasswordReset;
+const changePassword = require("../services/auth.service").changePassword;
 
 // user login
 exports.login = async (req, res) => {
@@ -216,6 +219,9 @@ exports.sendResetPasswordEmail = async (req, res) => {
           data: [],
         });
       }
+
+      const generatedToken = await requestPasswordReset(email);
+      console.log(generatedToken);
       const mailOptions = {
         from: "expenseshareauth@gmail.com", // Sender address
         to: user.email, // List of receivers
@@ -223,11 +229,11 @@ exports.sendResetPasswordEmail = async (req, res) => {
         template: "resetPassword", // The template name
         context: {
           // Data to be sent to Handlebars template
-          inviteTo: email,
+          userEmail: email,
           resetLink:
             process.env.RESETPASSWORDLINK ||
-            "http://localhost:3000/resetpassword",
-          resetKey: "sadasdasdasdasdasrqwerqwerqwr",
+            "http://localhost:3030/reset-password",
+          resetKey: generatedToken,
         },
       };
 
@@ -247,5 +253,29 @@ exports.sendResetPasswordEmail = async (req, res) => {
     }
   } catch (error) {
     res.status(500).send({ status: "error", message: "Something went wrong." });
+  }
+};
+exports.resetPassword = async (req, res) => {
+  try {
+    await delay(2000);
+    let { email, token, password } = req.body;
+    if (!email) {
+      res
+        .status(400)
+        .send({ status: "error", message: isRequiredMessage("Email") });
+    } else {
+      const data = await changePassword(token, password);
+      console.log(data);
+      return res
+        .status(200)
+        .send({ status: "ok", message: "Password Updated successfull." });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      message: error.message,
+      data: error.message,
+    });
   }
 };

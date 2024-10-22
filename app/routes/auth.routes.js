@@ -25,4 +25,8 @@ module.exports = function (app) {
     `${apiVersionPrefix}user/auth/request-password-reset`,
     controller.sendResetPasswordEmail
   );
+  app.post(
+    `${apiVersionPrefix}user/auth/reset-password`,
+    controller.resetPassword
+  );
 };
