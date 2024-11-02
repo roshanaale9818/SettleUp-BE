@@ -46,6 +46,8 @@ routes(app);
 // {force:true}
 db.sequelize.sync().then(() => {
   console.log("database initated");
+  console.log(`Server is running on port ${PORT}`);
+
   initial(); // creates 3 rows in database
 });
 const initial = async () => {

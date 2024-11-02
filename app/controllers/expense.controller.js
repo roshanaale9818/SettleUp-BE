@@ -243,9 +243,7 @@ exports.updateExpense = async (req, res) => {
       },
     });
     const expense = await Expense.findOne({});
-    where: {
-      id: body.id;
-    }
+
     // Update associations
     await expense.setGroup(existingGroup, { transaction: t });
     const member = await Member.findOne({
