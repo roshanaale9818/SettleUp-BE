@@ -186,11 +186,10 @@ exports.inviteToGroup = async (req, res) => {
       subject: "Group Invitation", // Subject line
       template: "invitation", // The template name
       context: {
-        // Data to be sent to Handlebars template
         inviteTo: userEmail,
         groupName: group.groupName,
         invitedBy: user.firstName,
-        invitationLink: "http://roshanaalemagar.com:3000",
+        invitationLink: process.env.INVITATIONLINK || "http://localhost:3030",
       },
     };
 
@@ -289,9 +288,6 @@ exports.addGroupMember = async (req, res) => {
           getResponseBody("error", "User No Found. Please invite user first.")
         );
     }
-
-    console.log("this is user", user);
-
     const isMember = await Group.findOne({
       include: [
         {
@@ -311,7 +307,6 @@ exports.addGroupMember = async (req, res) => {
     }
 
     // else add member
-
     const memberResult = await Member.create({
       userId: user.id,
       memberName: user.firstName,
