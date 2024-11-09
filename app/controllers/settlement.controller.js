@@ -273,7 +273,7 @@ exports.updateExpense = async (req, res) => {
   }
 };
 
-// get expense preview
+// get expense preview for any group
 
 exports.getAcceptedExpenses = async (req, res) => {
   const userId = req.userId;
@@ -283,7 +283,7 @@ exports.getAcceptedExpenses = async (req, res) => {
 
   try {
     if (!groupId) throw new Error("Group Id is required.");
-
+    console.log("groupID", groupId);
     const offset = (page - 1) * pageSize;
     const parsedGroupId = parseInt(groupId, 10);
     if (isNaN(parsedGroupId)) {

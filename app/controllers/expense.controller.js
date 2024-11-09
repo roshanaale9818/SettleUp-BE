@@ -65,46 +65,108 @@ exports.addExpense = async (req, res) => {
   }
 };
 
+// exports.getExpenseList = async (req, res) => {
+//   delay(2000);
+//   const page = req.query.page ? parseInt(req.query.page) : 1;
+//   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+//   try {
+//     // Find all members associated with the given user ID
+//     const { count, rows } = await Member.findAndCountAll({
+//       where: { userId: Number(req.userId) }, // Filter by userId
+//       include: [
+//         {
+//           model: Expense, // Include the Expense model to fetch associated expenses
+//           include: [
+//             {
+//               model: Group, // Include the Group model to fetch associated group details
+//               attributes: ["groupName"], // Specify the attributes to retrieve (e.g., groupName)
+//             },
+//           ],
+//           required: true, // Use inner join to only include members with associated expenses
+//         },
+//       ],
+//       limit,
+//       offset: (page - 1) * limit,
+//     });
+//     const members = rows;
+
+//     // Extract expenses and associated group names from the retrieved members
+//     const expensesWithGroupNames = members.reduce((acc, member) => {
+//       // Extract expenses associated with the current member
+//       const memberExpenses = member.Expenses || [];
+//       // Map each expense to include the associated group name
+//       const expensesWithGroupName = memberExpenses.map((expense) => ({
+//         ...expense.toJSON(), // Convert Sequelize instance to plain JSON object
+//         groupName: expense.Group ? expense.Group.groupName : null, // Retrieve groupName if available
+//       }));
+//       // Concatenate the current member's expenses with group names to the accumulator array
+//       return acc.concat(expensesWithGroupName);
+//     }, []);
+
+//     // Handle the case where no expenses are found for the user
+//     if (!expensesWithGroupNames || expensesWithGroupNames.length === 0) {
+//       return res.status(200).json({
+//         status: "ok",
+//         message: "No expenses found for this user",
+//         data: [],
+//       });
+//     }
+
+//     // Handle success scenario
+//     return res.status(200).json({
+//       status: "ok",
+//       message: "Expenses retrieved successfull for the user with group names",
+//       data: expensesWithGroupNames,
+//       totalItems: count ? count : 0,
+//       currentPage: page ? page : 1,
+//       totalPages: Math.ceil(count / limit),
+//     });
+//   } catch (error) {
+//     // Handle errors
+//     console.error("Error retrieving expenses for user:", error.message);
+//     return res.status(500).json({
+//       status: "error",
+//       message: "Failed to retrieve expenses for user",
+//       error: error.message,
+//     });
+//   }
+
+// };
+
 exports.getExpenseList = async (req, res) => {
   delay(2000);
   const page = req.query.page ? parseInt(req.query.page) : 1;
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
   try {
-    // Find all members associated with the given user ID
     const { count, rows } = await Member.findAndCountAll({
-      where: { userId: Number(req.userId) }, // Filter by userId
+      where: { userId: Number(req.userId) },
       include: [
         {
-          model: Expense, // Include the Expense model to fetch associated expenses
+          model: Expense,
           include: [
             {
-              model: Group, // Include the Group model to fetch associated group details
-              attributes: ["groupName"], // Specify the attributes to retrieve (e.g., groupName)
+              model: Group,
+              attributes: ["groupName"],
             },
           ],
-          required: true, // Use inner join to only include members with associated expenses
+          required: true,
         },
       ],
+      distinct: true, // Ensures distinct Members in the result set
       limit,
       offset: (page - 1) * limit,
     });
-    const members = rows;
 
-    // Extract expenses and associated group names from the retrieved members
-    const expensesWithGroupNames = members.reduce((acc, member) => {
-      // Extract expenses associated with the current member
-      const memberExpenses = member.Expenses || [];
-      // Map each expense to include the associated group name
-      const expensesWithGroupName = memberExpenses.map((expense) => ({
-        ...expense.toJSON(), // Convert Sequelize instance to plain JSON object
-        groupName: expense.Group ? expense.Group.groupName : null, // Retrieve groupName if available
-      }));
-      // Concatenate the current member's expenses with group names to the accumulator array
-      return acc.concat(expensesWithGroupName);
-    }, []);
+    // Extract and format expenses with group names
+    const expensesWithGroupNames = rows.flatMap((member) =>
+      (member.Expenses || []).map((expense) => ({
+        ...expense.toJSON(),
+        groupName: expense.Group ? expense.Group.groupName : null,
+      }))
+    );
 
-    // Handle the case where no expenses are found for the user
-    if (!expensesWithGroupNames || expensesWithGroupNames.length === 0) {
+    if (!expensesWithGroupNames.length) {
       return res.status(200).json({
         status: "ok",
         message: "No expenses found for this user",
@@ -112,17 +174,15 @@ exports.getExpenseList = async (req, res) => {
       });
     }
 
-    // Handle success scenario
     return res.status(200).json({
       status: "ok",
-      message: "Expenses retrieved successfull for the user with group names",
+      message: "Expenses retrieved successfully for the user with group names",
       data: expensesWithGroupNames,
-      totalItems: count ? count : 0,
-      currentPage: page ? page : 1,
+      totalItems: count || 0,
+      currentPage: page,
       totalPages: Math.ceil(count / limit),
     });
   } catch (error) {
-    // Handle errors
     console.error("Error retrieving expenses for user:", error.message);
     return res.status(500).json({
       status: "error",
