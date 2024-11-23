@@ -277,65 +277,93 @@ exports.updateExpense = async (req, res) => {
 
 exports.getAcceptedExpenses = async (req, res) => {
   const userId = req.userId;
+  console.log(userId);
   const { groupId } = req.query;
-  const page = parseInt(req.query.page) || 1; // Default to page 1
-  const pageSize = parseInt(req.query.limit) || 100; // Default page size
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = Math.min(parseInt(req.query.limit) || 100, 1000);
 
   try {
-    if (!groupId) throw new Error("Group Id is required.");
-    console.log("groupID", groupId);
-    const offset = (page - 1) * pageSize;
+    if (!groupId) {
+      return res
+        .status(422)
+        .json({ status: "error", message: "Group Id is required." });
+    }
+
     const parsedGroupId = parseInt(groupId, 10);
     if (isNaN(parsedGroupId)) {
-      throw new Error("Invalid Group Id.");
+      return res
+        .status(422)
+        .json({ status: "error", message: "Invalid Group Id." });
     }
+
+    const offset = (page - 1) * pageSize;
     const expenses = await Expense.findAndCountAll({
       where: {
-        groupId: parseInt(groupId),
+        groupId: parsedGroupId,
         status: SETTLEMENT_STATUS.ACCEPTED,
         isVerified: "1",
       },
       include: [
         {
           model: Member,
-          include: [{ model: User, attributes: { exclude: ["password"] } }],
+          include: [
+            {
+              model: User,
+              attributes: {
+                exclude: [
+                  "password",
+                  "isAdmin",
+                  "country",
+                  "postalCode",
+                  "street",
+                  "imgUrl",
+                  "isVerified",
+                  "status",
+                  "createdAt",
+                  "updatedAt",
+                  "remarks",
+                  "contact",
+                ],
+              },
+            },
+          ],
+          attributes: { exclude: ["isAdmin", "createdAt", "updatedAt"] },
         },
-        {
-          model: Group,
-        },
+        { model: Group },
       ],
+      attributes: { exclude: ["isAdmin", "updatedAt"] },
       limit: pageSize,
       offset: offset,
     });
 
-    // the case where no expenses are found
     if (!expenses || expenses.count === 0) {
       return res.status(200).json({
         status: "error",
-        message: "No expenses found.",
+        message: `No expenses found for group ${parsedGroupId}.`,
         data: [],
       });
     }
 
-    // Return the list of expenses associated with other users in your groups
+    // Rename 'user' to 'userDetails' in the response
+    const transformedExpenses = await transformExpenses(expenses.rows);
     return res.status(200).json({
       status: "ok",
-      message: "Expenses retrieved successfull.",
-      data: expenses.rows,
+      message: `Expenses retrieved successfully for group ${parsedGroupId}.`,
+      data: transformedExpenses,
       totalItems: expenses.count,
       totalPages: Math.ceil(expenses.count / pageSize),
       currentPage: page,
     });
   } catch (error) {
-    // Handle errors
     console.error(error);
-    return res.status(400).json({
+    return res.status(500).json({
       status: "error",
-      message: "Failed to retrieve expenses",
+      message: "Failed to retrieve expenses.",
       error: error.message,
     });
   }
 };
+
 // get group list with members with the token and user
 exports.getAdminGroups = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1;
@@ -436,4 +464,21 @@ exports.getSettlements = async (req, res) => {
   } catch (error) {
     res.status(500).send(getResponseBody("error", error.message, []));
   }
+};
+
+/**
+ * Helper function to transform expenses
+ * Renames the 'user' key to 'userDetails' in the Member object
+ * @param {Array} expenses - List of expenses
+ * @returns {Array} - Transformed expenses
+ */
+const transformExpenses = (expenses) => {
+  return expenses.map((expense) => {
+    const plainExpense = expense.toJSON(); // Convert Sequelize instance to plain object
+    if (plainExpense.Member && plainExpense.Member.user) {
+      plainExpense.Member.userDetails = plainExpense.Member.user; // Rename key
+      delete plainExpense.Member.user; // Remove the original key
+    }
+    return plainExpense;
+  });
 };
