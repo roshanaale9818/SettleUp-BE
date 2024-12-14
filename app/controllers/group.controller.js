@@ -559,7 +559,6 @@ exports.getAllGroups = async (req, res) => {
 exports.getMembers = async (req, res) => {
   try {
     const { groupId } = req.query;
-    console.log("GROUPID", groupId);
     if (!groupId) {
       return res
         .status(400)
