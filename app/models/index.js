@@ -115,5 +115,9 @@ db.group.hasMany(db.settlement);
 db.settlement.hasMany(db.accountBalance);
 db.expense.belongsTo(db.user, { foreignKey: "verifiedBy" });
 
+// // Group-Settlement Association (One-to-Many)
+// db.group.hasMany(db.settlement, { foreignKey: "groupId" });
+// db.settlement.belongsTo(db.group, { foreignKey: "groupId" });
+
 db.ROLES = ["user", "admin", "moderator", "superadmin"];
 module.exports = db;

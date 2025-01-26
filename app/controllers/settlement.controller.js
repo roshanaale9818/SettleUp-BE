@@ -11,6 +11,7 @@ const User = db.user;
 const Settlement = db.settlement;
 const { v4: uuidv4 } = require("uuid");
 const ExpenseSettlement = db.expenseSettlement;
+const GroupSettlement = db.groupSettement;
 
 // exports.createSettlement = async (req, res) => {
 //   const t = await sequelize.transaction();
@@ -705,6 +706,7 @@ exports.getSettlements = async (req, res) => {
       },
     });
 
+    console.log(rows);
     const dataRows = rows.map((group) => ({
       id: group.id,
       imgUrl: group.imgUrl,
@@ -715,8 +717,11 @@ exports.getSettlements = async (req, res) => {
       updatedAt: group.updatedAt,
       isAdmin: group["Members.isAdmin"], // Access isAdmin directly from the flattened structure
     }));
+    return res
+      .status(200)
+      .send(getResponseBody("ok", "Data retrived successfull.", dataRows));
   } catch (error) {
-    res.status(500).send(getResponseBody("error", error.message, []));
+    return res.status(500).send(getResponseBody("error", error.message, []));
   }
 };
 
@@ -773,7 +778,6 @@ exports.createSettlement = async (req, res) => {
       },
       transaction,
     });
-    // console.log(expenses);
 
     if (expenses.length === 0) {
       return res.status(400).json({
@@ -782,7 +786,6 @@ exports.createSettlement = async (req, res) => {
       });
     }
 
-    // Calculate total amount
     const totalAmount = expenses.reduce(
       (sum, expense) => sum + expense.amount,
       0
@@ -803,6 +806,9 @@ exports.createSettlement = async (req, res) => {
       },
       { transaction }
     );
+    // this is foreign key
+    // Use the association to create the GroupSettlement
+    await settlement.createGroupSettlement({ groupId }, { transaction });
 
     // Map expenses to the settlement
     const expenseSettlementData = expenses.map((expense) => ({
