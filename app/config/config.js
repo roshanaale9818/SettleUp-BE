@@ -22,3 +22,5 @@ module.exports = {
     dialect: "postgres",
   },
 };
+
+// npx sequelize-cli db:migrate --config C:\Users\rosha\Projects\ExpenseShare\BackEnd\SettleUp-BE\app\config\config.js

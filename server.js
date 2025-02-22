@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.get("/", (req, res, next) => {
-  res.json({ status: "ok", message: "Node js is running." });
+  res.json({ status: "ok", message: "Node js is running. hey" });
   next();
 });
 
@@ -41,13 +41,9 @@ const Role = db.role;
 //configuring the routes
 routes(app);
 
-// force true should be removed for production environment
-// let dev = process.env.MODE || "TEST";
-// {force:true}
 db.sequelize.sync().then(() => {
   console.log("database initated");
   console.log(`Server is running on port ${PORT}`);
-
   initial(); // creates 3 rows in database
 });
 const initial = async () => {

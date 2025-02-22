@@ -13,61 +13,6 @@ const { v4: uuidv4 } = require("uuid");
 const ExpenseSettlement = db.expenseSettlement;
 const GroupSettlement = db.groupSettement;
 
-// exports.createSettlement = async (req, res) => {
-//   const t = await sequelize.transaction();
-//   try {
-//     const { body } = req;
-//     const { groupId } = req.query;
-//     if (!groupId) throw new Error("Group id cannot be null");
-
-//     let expenseDataObj = {
-//       ...body,
-//       settlementStatus: SETTLEMENT_STATUS.PENDING,
-//       title: body.expenseTitle,
-//       status: "1",
-//       isVerified: "0",
-//       verifiedBy: 0,
-//       groupId: body.group,
-//       MemberId: body.paidBy,
-//     };
-//     // 1. Create Expense
-//     const expense = await Expense.create(expenseDataObj, { transaction: t });
-
-//     // 2. Add Expense to Group
-//     const group = await Group.findOne({
-//       where: { id: parseInt(body.group) },
-//       transaction: t,
-//     });
-//     if (!group) throw new Error("Group not found");
-//     await expense.setGroup(group, { transaction: t });
-
-//     // 3. Add Expense to Member
-//     const member = await Member.findOne({
-//       where: { id: parseInt(body.paidBy) },
-//       transaction: t,
-//     });
-//     if (!member) throw new Error("Member not found");
-//     await member.addExpense(expense, { transaction: t });
-//     // Commit Transaction if not already committed or rolled back
-//     await t.commit();
-//     return res
-//       .status(200)
-//       .send(getResponseBody("ok", "Expense added successfull.", []));
-//   } catch (error) {
-//     console.log(error);
-//     await t.rollback();
-//     if (
-//       error.name === "SequelizeValidationError" ||
-//       error.name === "SequelizeUniqueConstraintError"
-//     ) {
-//       const errors = error.errors.map((err) => err.message);
-//       return res.status(400).json({ status: "error", errors });
-//     } else {
-//       return res.status(500).send(getResponseBody("error", error.message, []));
-//     }
-//   }
-// };
-
 exports.getSettlementList = async (req, res) => {
   delay(2000);
   const page = req.query.page ? parseInt(req.query.page) : 1;
@@ -278,103 +223,12 @@ exports.updateExpense = async (req, res) => {
   }
 };
 
-// get expense preview for any group
-
-// exports.getAcceptedExpenses = async (req, res) => {
-//   const userId = req.userId;
-//   const { groupId } = req.query;
-//   const page = parseInt(req.query.page) || 1;
-//   const pageSize = Math.min(parseInt(req.query.limit) || 100, 1000);
-
-//   try {
-//     if (!groupId) {
-//       return res
-//         .status(422)
-//         .json({ status: "error", message: "Group Id is required." });
-//     }
-
-//     const parsedGroupId = parseInt(groupId, 10);
-//     if (isNaN(parsedGroupId)) {
-//       return res
-//         .status(422)
-//         .json({ status: "error", message: "Invalid Group Id." });
-//     }
-
-//     const offset = (page - 1) * pageSize;
-//     const expenses = await Expense.findAndCountAll({
-//       where: {
-//         groupId: parsedGroupId,
-//         status: SETTLEMENT_STATUS.ACCEPTED,
-//         isVerified: "1",
-//       },
-//       include: [
-//         {
-//           model: Member,
-//           include: [
-//             {
-//               model: User,
-//               attributes: {
-//                 exclude: [
-//                   "password",
-//                   "isAdmin",
-//                   "country",
-//                   "postalCode",
-//                   "street",
-//                   "imgUrl",
-//                   "isVerified",
-//                   "status",
-//                   "createdAt",
-//                   "updatedAt",
-//                   "remarks",
-//                   "contact",
-//                 ],
-//               },
-//             },
-//           ],
-//           attributes: { exclude: ["isAdmin", "createdAt", "updatedAt"] },
-//         },
-//         { model: Group },
-//       ],
-//       attributes: { exclude: ["isAdmin", "updatedAt"] },
-//       limit: pageSize,
-//       offset: offset,
-//     });
-
-//     if (!expenses || expenses.count === 0) {
-//       return res.status(200).json({
-//         status: "error",
-//         message: `No expenses found.`,
-//         data: [],
-//       });
-//     }
-
-//     // Rename 'user' to 'userDetails' in the response
-//     const transformedExpenses = await transformExpenses(expenses.rows);
-//     return res.status(200).json({
-//       status: "ok",
-//       message: `Expenses retrieved successfully.`,
-//       data: transformedExpenses,
-//       totalItems: expenses.count,
-//       totalPages: Math.ceil(expenses.count / pageSize),
-//       currentPage: page,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({
-//       status: "error",
-//       message: "Failed to retrieve expenses.",
-//       error: error.message,
-//     });
-//   }
-// };
-
 // Controller to get accepted expenses
 exports.getAcceptedExpenses = async (req, res) => {
   const userId = req.userId; // The ID of the current user
   const { groupId } = req.query;
   const page = parseInt(req.query.page) || 1;
   const pageSize = Math.min(parseInt(req.query.limit) || 100, 1000);
-
   try {
     // Validate groupId
     if (!groupId) {
@@ -695,32 +549,104 @@ exports.getAdminGroups = async (req, res) => {
 
 exports.getSettlements = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1;
-  const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
   try {
+    // Step 1: Fetch groups associated with the logged-in user
+    const groups = await Group.findAll({
+      include: [
+        {
+          model: Member,
+          where: { userId: String(req.userId) },
+          attributes: [],
+        },
+      ],
+      attributes: ["id"],
+      raw: true,
+    });
+
+    const groupIds = groups.map((group) => group.id);
+
+    if (groupIds.length === 0) {
+      return res
+        .status(200)
+        .send(getResponseBody("ok", "No settlements found.", []));
+    }
+
+    // Step 2: Fetch settlements through GroupSettlement relationship
+    const groupSettlements = await GroupSettlement.findAll({
+      where: {
+        groupId: groupIds, // Filter by the user's group IDs
+      },
+      attributes: ["settlementId", "groupId"],
+      raw: true,
+    });
+
+    const settlementIds = groupSettlements.map((gs) => gs.settlementId);
+
+    if (settlementIds.length === 0) {
+      return res
+        .status(200)
+        .send(getResponseBody("ok", "No settlements found.", []));
+    }
+
     const { count, rows } = await Settlement.findAndCountAll({
+      where: {
+        id: settlementIds, // Filter by settlement IDs associated with user's groups
+      },
       limit,
       offset: (page - 1) * limit,
       raw: true,
       attributes: {
-        exclude: [""],
+        exclude: [""], // Exclude attributes if needed
       },
     });
 
-    console.log(rows);
-    const dataRows = rows.map((group) => ({
-      id: group.id,
-      imgUrl: group.imgUrl,
-      groupName: group.groupName,
-      status: group.status,
-      remarks: group.remarks,
-      createdAt: group.createdAt,
-      updatedAt: group.updatedAt,
-      isAdmin: group["Members.isAdmin"], // Access isAdmin directly from the flattened structure
-    }));
+    // Step 3: Fetch related data and construct the response
+    const dataRows = await Promise.all(
+      rows.map(async (data) => {
+        const userData = await User.findByPk(Number(data.settledBy));
+
+        // Get group settlement details
+        const groupSettlement = groupSettlements.find(
+          (gs) => gs.settlementId === data.id
+        );
+
+        let groupData = null;
+        let groupName = null;
+
+        // Get group details if groupSettlement exists
+        if (groupSettlement) {
+          groupData = await Group.findOne({
+            where: { id: groupSettlement.groupId },
+            raw: true,
+          });
+          groupName = groupData ? groupData.groupName : null;
+        }
+
+        return {
+          id: data.id,
+          imgUrl: data.imgUrl,
+          status: data.status,
+          remarks: data.remarks,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          settledBy: userData ? getFullName(userData) : null,
+          settledByUserId: userData ? userData.id : null,
+          title: data.title,
+          amount: data.totalAmount,
+          isAdmin: data["Members.isAdmin"] || false,
+          groupId: groupData ? groupData.id : null,
+          groupName: groupName,
+        };
+      })
+    );
+
     return res
       .status(200)
-      .send(getResponseBody("ok", "Data retrived successfull.", dataRows));
+      .send(getResponseBody("ok", "Data retrieved successfully.", dataRows));
   } catch (error) {
+    console.error("Error in getSettlements:", error.message);
     return res.status(500).send(getResponseBody("error", error.message, []));
   }
 };
@@ -750,8 +676,6 @@ const transformExpenses = (expenses) => {
       plainExpense.Member.userDetails = plainExpense.Member.User; // Rename 'User' to 'userDetails'
       delete plainExpense.Member.User; // Remove the original 'User' key
     }
-
-    console.log(plainExpense);
     return plainExpense;
   });
 };
@@ -803,12 +727,21 @@ exports.createSettlement = async (req, res) => {
         remarks,
         status: SETTLEMENT_STATUS.SETTLED,
         totalAmount,
+        GroupId: groupId,
       },
       { transaction }
     );
+    await settlement.addGroup(groupId);
     // this is foreign key
     // Use the association to create the GroupSettlement
-    await settlement.createGroupSettlement({ groupId }, { transaction });
+    // await settlement.createGroupSettlement({ groupId }, { transaction });
+    await GroupSettlement.create(
+      {
+        groupId: groupId,
+        settlementId: settlement.id,
+      },
+      { transaction }
+    );
 
     // Map expenses to the settlement
     const expenseSettlementData = expenses.map((expense) => ({
@@ -816,7 +749,6 @@ exports.createSettlement = async (req, res) => {
       ExpenseId: String(expense.id),
       settlementId: String(settlement.id),
     }));
-    // console.log("DATA", expenseSettlementData);
 
     await ExpenseSettlement.bulkCreate(expenseSettlementData, { transaction });
 
@@ -849,3 +781,10 @@ exports.createSettlement = async (req, res) => {
     });
   }
 };
+
+function getFullName(user) {
+  if (!user) {
+    return null;
+  }
+  return `${user.firstName} ${user.lastName}`;
+}

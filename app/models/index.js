@@ -113,7 +113,7 @@ db.settlement.belongsToMany(db.member, {
 
 db.group.hasMany(db.settlement);
 db.settlement.hasMany(db.accountBalance);
-db.expense.belongsTo(db.user, { foreignKey: "verifiedBy" });
+db.expense.belongsTo(db.user);
 
 // // Group-Settlement Association (One-to-Many)
 // db.group.hasMany(db.settlement, { foreignKey: "groupId" });

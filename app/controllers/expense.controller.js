@@ -41,10 +41,7 @@ exports.addExpense = async (req, res) => {
     });
     if (!member) throw new Error("Member not found");
     await member.addExpense(expense, { transaction: t });
-    // const memberIsSet = await expense.setMember(member,{ transaction: t });
-    // console.log(memberIsSet);
 
-    // console.log('Transaction state:', t.finished);
     // Commit Transaction if not already committed or rolled back
     await t.commit();
     return res
@@ -65,10 +62,72 @@ exports.addExpense = async (req, res) => {
   }
 };
 
+// exports.getExpenseList = async (req, res) => {
+//   delay(2000);
+//   const page = req.query.page ? parseInt(req.query.page) : 1;
+//   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
+//   try {
+//     const { count, rows } = await Member.findAndCountAll({
+//       where: { userId: Number(req.userId) },
+//       include: [
+//         {
+//           model: Expense,
+//           include: [
+//             {
+//               model: Group,
+//               attributes: ["groupName"],
+//             },
+//           ],
+//           required: true,
+//         },
+//       ],
+//       distinct: true, // Ensures distinct Members in the result set
+//       limit,
+//       offset: (page - 1) * limit,
+//     });
+
+//     // Extract and format expenses with group names
+//     const expensesWithGroupNames = rows.flatMap((member) =>
+//       (member.Expenses || []).map((expense) => ({
+//         ...expense.toJSON(),
+//         groupName: expense.Group ? expense.Group.groupName : null,
+//       }))
+//     );
+
+//     if (!expensesWithGroupNames.length) {
+//       return res.status(200).json({
+//         status: "ok",
+//         message: "No expenses found for this user",
+//         data: [],
+//       });
+//     }
+
+//     return res.status(200).json({
+//       status: "ok",
+//       message: "Expenses retrieved successfully for the user with group names",
+//       data: expensesWithGroupNames,
+//       totalItems: count || 0,
+//       currentPage: page,
+//       totalPages: Math.ceil(count / limit),
+//     });
+//   } catch (error) {
+//     console.error("Error retrieving expenses for user:", error.message);
+//     return res.status(500).json({
+//       status: "error",
+//       message: "Failed to retrieve expenses for user",
+//       error: error.message,
+//     });
+//   }
+// };
+
 exports.getExpenseList = async (req, res) => {
-  delay(2000);
   const page = req.query.page ? parseInt(req.query.page) : 1;
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
+  // Get optional filters from query params
+  const groupId = req.query.groupId ? parseInt(req.query.groupId) : null;
+  const status = req.query.status ? req.query.status : null;
 
   try {
     const { count, rows } = await Member.findAndCountAll({
@@ -76,10 +135,17 @@ exports.getExpenseList = async (req, res) => {
       include: [
         {
           model: Expense,
+          where: {
+            ...(status && { status }), // Apply status filter if provided
+          },
           include: [
             {
               model: Group,
-              attributes: ["groupName"],
+              attributes: ["id", "groupName"],
+              where: {
+                ...(groupId && { id: groupId }), // Apply group filter if provided
+              },
+              required: false, // Allows expenses without a group to still show up
             },
           ],
           required: true,
@@ -95,6 +161,7 @@ exports.getExpenseList = async (req, res) => {
       (member.Expenses || []).map((expense) => ({
         ...expense.toJSON(),
         groupName: expense.Group ? expense.Group.groupName : null,
+        groupId: expense.Group ? expense.Group.id : null,
       }))
     );
 
