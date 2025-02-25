@@ -19,6 +19,18 @@ const Sequelize = require("sequelize");
 const Balance = require("./accountBalance.model");
 const MemberAccount = require("./memberAccount.model");
 const PasswordResetToken = require("./passwordResetToken.model");
+
+const sslOptions =
+  process.env.NODE_ENV === "production"
+    ? {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false, // You can adjust this if you have a proper CA certificate
+        },
+        sslmode: "require",
+      }
+    : {};
+
 const sequelize = new Sequelize(
   config.DB,
   config.USER,
@@ -28,6 +40,7 @@ const sequelize = new Sequelize(
     host: config.HOST,
     dialect: config.dialect,
     operatorsAliases: 0,
+    port: process.env.DB_PORT,
     pool: {
       max: config.pool.max,
       min: config.pool.min,
@@ -35,8 +48,20 @@ const sequelize = new Sequelize(
       idle: config.pool.idle,
       ssl: true,
     },
+    dialectOptions: sslOptions,
   }
 );
+
+// Test database connection
+async function testConnection() {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connected successfully");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+}
+testConnection();
 const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;

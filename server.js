@@ -1,5 +1,9 @@
 const express = require("express");
-require("dotenv/config");
+const fs = require("fs");
+const path = require("path");
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+require("dotenv").config({ path: path.resolve(__dirname, envFile) });
 const limiter = require("express-rate-limit");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -43,7 +47,9 @@ routes(app);
 
 db.sequelize.sync().then(() => {
   console.log("database initated");
-  console.log(`Server is running on port ${PORT}`);
+  console.log(
+    `Server is running on port ${PORT}  and in ${process.env.NODE_ENV} environment`
+  );
   initial(); // creates 3 rows in database
 });
 const initial = async () => {
